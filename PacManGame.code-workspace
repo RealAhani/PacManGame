@@ -1,0 +1,1367 @@
+{
+	"folders": [
+		{
+			"name": "PacManGame",
+			"path": "."
+		},
+		{
+			"name": "UE5",
+			"path": "C:\\_dev\\UE_5.5"
+		}
+	],
+	"settings": {
+		"typescript.tsc.autoDetect": "off",
+		"npm.autoDetect": "off",
+		"terminal.integrated.env.windows": {
+			"PATH": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64;${env:PATH}",
+			"DOTNET_ROOT": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64",
+			"DOTNET_HOST_PATH": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64\\dotnet.exe",
+			"DOTNET_MULTILEVEL_LOOKUP": "0",
+			"DOTNET_ROLL_FORWARD": "LatestMajor"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-vscode.cpptools",
+			"ms-dotnettools.csharp"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "PacManGame Win64 Debug Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Debug Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Win64 Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Debug Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 DebugGame Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Win64 DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 DebugGame Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Development Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Development Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Win64 Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Development Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Test Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Test Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Win64 Test Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Test Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Shipping Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Shipping Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Win64 Shipping Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Win64 Shipping Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Win64",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Cook+Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Debug",
+					"-ServerConfig=Debug",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Debug Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Cook",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Debug",
+					"-ServerConfig=Debug",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Debug Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Debug",
+					"-ServerConfig=Debug",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-DeploySoToDevice",
+					"-SkipCook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGame Android Debug Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Android Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Debug Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Cook+Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=DebugGame",
+					"-ServerConfig=DebugGame",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android DebugGame Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Cook",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=DebugGame",
+					"-ServerConfig=DebugGame",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android DebugGame Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=DebugGame",
+					"-ServerConfig=DebugGame",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-DeploySoToDevice",
+					"-SkipCook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGame Android DebugGame Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Android DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android DebugGame Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Cook+Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Development",
+					"-ServerConfig=Development",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Development Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Cook",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Development",
+					"-ServerConfig=Development",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Development Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Development",
+					"-ServerConfig=Development",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-DeploySoToDevice",
+					"-SkipCook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGame Android Development Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Android Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Development Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Cook+Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Test",
+					"-ServerConfig=Test",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Test Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Cook",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Test",
+					"-ServerConfig=Test",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Test Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Test",
+					"-ServerConfig=Test",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-DeploySoToDevice",
+					"-SkipCook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGame Android Test Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Android Test Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Test Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Test",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Cook+Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Shipping",
+					"-ServerConfig=Shipping",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Shipping Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Cook",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Shipping",
+					"-ServerConfig=Shipping",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-Cook"
+				],
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Build",
+					"PacManGame Android Shipping Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Deploy",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\RunUAT.bat",
+				"args": [
+					"BuildCookRun",
+					"-ScriptsForProject=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-Project=C:/Users/ahani/Documents/Unreal Projects/PacManGame/PacManGame.uproject",
+					"-noP4",
+					"-ClientConfig=Shipping",
+					"-ServerConfig=Shipping",
+					"-NoCompileEditor",
+					"-utf8output",
+					"-Platform=Android",
+					"-TargetPlatform=Android",
+					"-ini:Game:[/Script/UnrealEd.ProjectPackagingSettings]:BlueprintNativizationMethod=Disabled",
+					"-Compressed",
+					"-IterativeCooking",
+					"-IterativeDeploy",
+					"-DeploySoToDevice",
+					"-SkipCook",
+					"-Stage",
+					"-Deploy"
+				],
+				"dependsOn": [
+					"PacManGame Android Shipping Build"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGame Android Shipping Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGame Android Shipping Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGame",
+					"Android",
+					"Shipping",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Debug Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Debug Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGameEditor Win64 Debug Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Debug Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Debug",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 DebugGame Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 DebugGame Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGameEditor Win64 DebugGame Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 DebugGame Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"DebugGame",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Development Build",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Development Rebuild",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Build.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"dependsOn": [
+					"PacManGameEditor Win64 Development Clean"
+				],
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"label": "PacManGameEditor Win64 Development Clean",
+				"group": "build",
+				"command": "Engine\\Build\\BatchFiles\\Clean.bat",
+				"args": [
+					"PacManGameEditor",
+					"Win64",
+					"Development",
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-waitmutex"
+				],
+				"problemMatcher": "$msCompile",
+				"type": "shell",
+				"options": {
+					"cwd": "C:\\_dev\\UE_5.5"
+				}
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Launch PacManGame (Debug)",
+				"request": "launch",
+				"program": "C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\Binaries\\Win64\\UnrealGame-Win64-Debug.exe",
+				"preLaunchTask": "PacManGame Win64 Debug Build",
+				"args": [
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGame (DebugGame)",
+				"request": "launch",
+				"program": "C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\Binaries\\Win64\\UnrealGame-Win64-DebugGame.exe",
+				"preLaunchTask": "PacManGame Win64 DebugGame Build",
+				"args": [
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGame (Development)",
+				"request": "launch",
+				"program": "C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\Binaries\\Win64\\UnrealGame.exe",
+				"preLaunchTask": "PacManGame Win64 Development Build",
+				"args": [
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGame (Test)",
+				"request": "launch",
+				"program": "C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\Binaries\\Win64\\UnrealGame-Win64-Test.exe",
+				"preLaunchTask": "PacManGame Win64 Test Build",
+				"args": [
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGame (Shipping)",
+				"request": "launch",
+				"program": "C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\Binaries\\Win64\\UnrealGame-Win64-Shipping.exe",
+				"preLaunchTask": "PacManGame Win64 Shipping Build",
+				"args": [
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGameEditor (Debug)",
+				"request": "launch",
+				"program": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\Win64\\UnrealEditor-Win64-Debug.exe",
+				"preLaunchTask": "PacManGameEditor Win64 Debug Build",
+				"args": [
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject"
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGameEditor (DebugGame)",
+				"request": "launch",
+				"program": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\Win64\\UnrealEditor-Win64-DebugGame.exe",
+				"preLaunchTask": "PacManGameEditor Win64 DebugGame Build",
+				"args": [
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject"
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Launch PacManGameEditor (Development)",
+				"request": "launch",
+				"program": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\Win64\\UnrealEditor.exe",
+				"preLaunchTask": "PacManGameEditor Win64 Development Build",
+				"args": [
+					"C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject"
+				],
+				"cwd": "C:\\_dev\\UE_5.5",
+				"stopAtEntry": false,
+				"console": "integratedTerminal",
+				"type": "cppvsdbg",
+				"visualizerFile": "C:\\_dev\\UE_5.5\\Engine\\Extras\\VisualStudioDebugging\\Unreal.natvis",
+				"sourceFileMap": {
+					"D:\\build\\++UE5\\Sync": "C:\\_dev\\UE_5.5"
+				}
+			},
+			{
+				"name": "Generate Project Files",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "UnrealBuildTool Win64 Development Build",
+				"program": "C:\\_dev\\UE_5.5\\Engine\\Build\\BatchFiles\\RunUBT.bat",
+				"args": [
+					"-projectfiles",
+					"-vscode",
+					"-project=C:\\Users\\ahani\\Documents\\Unreal Projects\\PacManGame\\PacManGame.uproject",
+					"-game",
+					"-engine",
+					"-dotnet"
+				],
+				"env": {
+					"PATH": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64;${env:PATH}",
+					"DOTNET_ROOT": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64",
+					"DOTNET_HOST_PATH": "C:\\_dev\\UE_5.5\\Engine\\Binaries\\ThirdParty\\DotNet\\8.0.300\\win-x64\\dotnet.exe",
+					"DOTNET_MULTILEVEL_LOOKUP": "0",
+					"DOTNET_ROLL_FORWARD": "LatestMajor"
+				},
+				"console": "integratedTerminal",
+				"stopAtEntry": false,
+				"cwd": "C:\\_dev\\UE_5.5"
+			}
+		]
+	}
+}
