@@ -1,29 +1,76 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+// clang-format off
 #include "PacMaze.h"
+
 #include "DrawDebugHelpers.h"
 #include "Kismet/KismetStringLibrary.h"
+#include "Components/SceneComponent.h"
+#include "Camera/CameraComponent.h"
+
 #include "PacMazeDataAsset.h"
+// clang-format on
 
 // Sets default values
 APacMaze::APacMaze() {
-  // Set this actor to call Tick() every frame.  You can turn this off to
-  // improve performance if you don't need it.
   PrimaryActorTick.bCanEverTick = false;
+  BaseComponent =
+      CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+
+  SetRootComponent(BaseComponent);
+
+  CameraComponent =
+      CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+
+  CameraComponent->SetupAttachment(BaseComponent);
+  // CameraComponent->ProjectionMode = ECameraProjectionMode::Orthographic;
+
+  // CameraComponent->OrthoWidth = 3200.0f;
+
+  // CameraComponent->SetRelativeLocation(FVector(0.0f, 0.0f, 2000.0f));
+
+  // CameraComponent->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 }
 
 // Called when the game starts or when spawned
 void APacMaze::BeginPlay() {
   Super::BeginPlay();
 
-  check(MazeData);
+  InitializeRuntime();
+  DrawDebugMaze();
+}
+
+void APacMaze::PostInitializeComponents() {
+  Super::PostInitializeComponents();
+
+  if (MazeData == nullptr) {
+    return;
+  }
+
+  InitializeRuntime();
+}
+
+void APacMaze::InitializeRuntime() {
+  if (bRuntimeInitialized) {
+    return;
+  }
+
+  if (MazeData == nullptr) {
+    return;
+  }
 
   GridSize = MazeData->GridSize;
+
   if (!ValidateMazeData()) {
     return;
   }
+
   BuildRuntimeGrid();
-  DrawDebugMaze();
+
+  bRuntimeInitialized = true;
+
+  UE_LOG(LogTemp, Warning, TEXT("PAC: Maze initialized. Size=(%d,%d), Data=%s"),
+         GridSize.X, GridSize.Y, *GetNameSafe(MazeData));
 }
 
 bool APacMaze::ValidateMazeData() const {
@@ -251,4 +298,8 @@ FPacGridPosition APacMaze::GetPlayerStart() const {
   check(MazeData);
 
   return MazeData->PlayerStart;
+}
+
+UCameraComponent *APacMaze::GetCameraComponent() const {
+  return CameraComponent;
 }

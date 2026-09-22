@@ -2,12 +2,16 @@
 
 #pragma once
 
+// clang-format off
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PacGridTypes.h"
 #include "PacMaze.generated.h"
+// clang-format on
 
 class UPacMazeDataAsset;
+class USceneComponent;
+class UCameraComponent;
 
 UCLASS()
 class PACMANGAME_API APacMaze : public AActor {
@@ -41,9 +45,14 @@ public:
 
   FPacGridPosition GetPlayerStart() const;
 
+  void InitializeRuntime();
+
+  UCameraComponent *GetCameraComponent() const;
+
 protected:
   // Called when the game starts or when spawned
   virtual void BeginPlay() override;
+  virtual void PostInitializeComponents() override;
 
 private:
   // -------------------- functions --------------------
@@ -54,6 +63,8 @@ private:
   EPacTileType ParseTileCharacter(TCHAR Character) const;
 
   // -------------------- properties --------------------
+  bool bRuntimeInitialized = false;
+
   UPROPERTY(EditDefaultsOnly, Category = "Maze")
   TObjectPtr<UPacMazeDataAsset> MazeData;
 
@@ -66,4 +77,10 @@ private:
 
   UPROPERTY(VisibleInstanceOnly, Category = "Maze|Grid")
   TArray<EPacTileType> Tiles;
+
+  UPROPERTY(VisibleAnywhere, Category = "Components")
+  TObjectPtr<USceneComponent> BaseComponent;
+
+  UPROPERTY(VisibleAnywhere, Category = "Components")
+  TObjectPtr<UCameraComponent> CameraComponent;
 };

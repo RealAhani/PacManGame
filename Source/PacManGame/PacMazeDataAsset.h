@@ -2,10 +2,12 @@
 
 #pragma once
 
+// clang-format off
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "PacGridTypes.h"
 #include "PacMazeDataAsset.generated.h"
+// clang-format on
 
 /**
  *

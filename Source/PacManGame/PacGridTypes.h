@@ -1,7 +1,9 @@
 #pragma once
 
+// clang-format off
 #include "CoreMinimal.h"
 #include "PacGridTypes.generated.h"
+// clang-format on
 
 UENUM(BlueprintType)
 enum class EPacDirection : uint8 { None, Up, Down, Left, Right };
