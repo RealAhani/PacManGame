@@ -41,3 +41,7 @@ bool APacPlayerPawn::IsMovementBlocked() const {
 
   return GridMovementComponent->IsMovementBlocked();
 }
+
+UPacGridMovementComponent *APacPlayerPawn::GetGridMovementComponent() const {
+  return GridMovementComponent;
+}

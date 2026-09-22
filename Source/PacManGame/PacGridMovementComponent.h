@@ -11,11 +11,15 @@
 
 class APacMaze;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnGridPositionChanged,
+                                    const FPacGridPosition &);
+
 UCLASS(ClassGroup = (PacMan), meta = (BlueprintSpawnableComponent))
 class PACMANGAME_API UPacGridMovementComponent : public UPawnMovementComponent {
   GENERATED_BODY()
 
 public:
+  // -------------------- functions --------------------
   UPacGridMovementComponent();
 
   void SetDesiredDirection(EPacDirection Direction);
@@ -25,6 +29,9 @@ public:
   void InitializeMaze(APacMaze *InMaze);
 
   bool IsMovementBlocked() const { return bMovementBlocked; }
+
+  // -------------------- properties --------------------
+  FOnGridPositionChanged OnGridPositionChanged;
 
 protected:
   virtual void BeginPlay() override;

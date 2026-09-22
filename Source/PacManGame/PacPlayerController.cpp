@@ -5,6 +5,8 @@
 #include "PacPlayerPawn.h"
 #include "PacGameMode.h"
 #include "PacMaze.h"
+#include "PacPelletManager.h"
+#include "PacPlayerState.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -54,6 +56,16 @@ void APacPlayerController::BeginPlay() {
     return;
   }
   PlayerPawn->InitializeMaze(Maze);
+
+  APacPelletManager *PelletManager = GameMode->GetPelletManager();
+  if (PelletManager == nullptr) {
+    return;
+  }
+
+  PelletManager->BindToPlayerMovement(PlayerPawn->GetGridMovementComponent());
+
+  PelletManager->OnPelletConsumed.AddUObject(
+      this, &APacPlayerController::HandlePelletConsumed);
 }
 
 void APacPlayerController::SetupInputComponent() {
@@ -125,4 +137,15 @@ void APacPlayerController::HandleMoveLeft(const FInputActionValue &Value) {
 
 void APacPlayerController::HandleMoveRight(const FInputActionValue &Value) {
   SubmitDirection(EPacDirection::Right);
+}
+
+void APacPlayerController::HandlePelletConsumed(const int32 ScoreValue) {
+  APacPlayerState *PacPlayerState = Cast<APacPlayerState>(PlayerState);
+
+  if (PacPlayerState == nullptr) {
+    UE_LOG(LogTemp, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
+    return;
+  }
+
+  PacPlayerState->AddScore(ScoreValue);
 }

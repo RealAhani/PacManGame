@@ -177,6 +177,7 @@ void UPacGridMovementComponent::MoveTowardTarget(const float DeltaTime) {
     UpdatedComponent->SetWorldLocation(TargetWorldPosition);
 
     CurrentGridPosition = TargetGridPosition;
+    OnGridPositionChanged.Broadcast(CurrentGridPosition);
 
     return;
   }
@@ -187,6 +188,7 @@ void UPacGridMovementComponent::MoveTowardTarget(const float DeltaTime) {
     UpdatedComponent->SetWorldLocation(TargetWorldPosition);
 
     CurrentGridPosition = TargetGridPosition;
+    OnGridPositionChanged.Broadcast(CurrentGridPosition);
 
     return;
   }
