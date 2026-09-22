@@ -24,6 +24,8 @@ public:
 
   void InitializeMaze(APacMaze *InMaze);
 
+  bool IsMovementBlocked() const { return bMovementBlocked; }
+
 protected:
   virtual void BeginPlay() override;
 

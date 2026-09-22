@@ -21,6 +21,7 @@ public:
   APacPlayerPawn();
   void SetDesiredDirection(EPacDirection Direction);
   void InitializeMaze(APacMaze *Maze);
+  bool IsMovementBlocked() const;
 
 private:
   UPROPERTY(VisibleAnywhere, Category = "Components")

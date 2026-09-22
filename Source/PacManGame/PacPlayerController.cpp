@@ -66,37 +66,28 @@ void APacPlayerController::SetupInputComponent() {
     return;
   }
 
-  if (MoveAction == nullptr) {
+  if (MoveUpAction == nullptr || MoveDownAction == nullptr ||
+      MoveLeftAction == nullptr || MoveRightAction == nullptr) {
     return;
   }
 
-  EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this,
-                                     &APacPlayerController::HandleMove);
+  EnhancedInputComponent->BindAction(MoveUpAction, ETriggerEvent::Triggered,
+                                     this, &APacPlayerController::HandleMoveUp);
+
+  EnhancedInputComponent->BindAction(MoveDownAction, ETriggerEvent::Triggered,
+                                     this,
+                                     &APacPlayerController::HandleMoveDown);
+
+  EnhancedInputComponent->BindAction(MoveLeftAction, ETriggerEvent::Triggered,
+                                     this,
+                                     &APacPlayerController::HandleMoveLeft);
+
+  EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered,
+                                     this,
+                                     &APacPlayerController::HandleMoveRight);
 }
 
-void APacPlayerController::HandleMove(const FInputActionValue &Value) {
-  const FVector2D MovementInput = Value.Get<FVector2D>();
-
-  UE_LOG(LogTemp, Log, TEXT("Move Input: X=%f Y=%f"), MovementInput.X,
-         MovementInput.Y);
-  MoveInput = MovementInput;
-
-  if (MoveInput.IsNearlyZero()) {
-    return;
-  }
-
-  EPacDirection Direction = EPacDirection::None;
-
-  if (FMath::Abs(MoveInput.X) > FMath::Abs(MoveInput.Y)) {
-    Direction = MoveInput.X > 0.0f ? EPacDirection::Left : EPacDirection::Right;
-  } else {
-    Direction = MoveInput.Y > 0.0f ? EPacDirection::Up : EPacDirection::Down;
-  }
-  if (Direction == LastSubmittedDirection) {
-    return;
-  }
-
-  LastSubmittedDirection = Direction;
+void APacPlayerController::SubmitDirection(const EPacDirection Direction) {
 
   APacPlayerPawn *PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
 
@@ -104,5 +95,34 @@ void APacPlayerController::HandleMove(const FInputActionValue &Value) {
     return;
   }
 
+  if (PlayerPawn->IsMovementBlocked()) {
+    LastSubmittedDirection = EPacDirection::None;
+  }
+
+  if (Direction == LastSubmittedDirection) {
+    return;
+  }
+
+  LastSubmittedDirection = Direction;
+
   PlayerPawn->SetDesiredDirection(Direction);
+
+  UE_LOG(LogTemp, Log, TEXT("PAC: Direction submitted: %d"),
+         static_cast<uint8>(Direction));
+}
+
+void APacPlayerController::HandleMoveUp(const FInputActionValue &Value) {
+  SubmitDirection(EPacDirection::Up);
+}
+
+void APacPlayerController::HandleMoveDown(const FInputActionValue &Value) {
+  SubmitDirection(EPacDirection::Down);
+}
+
+void APacPlayerController::HandleMoveLeft(const FInputActionValue &Value) {
+  SubmitDirection(EPacDirection::Left);
+}
+
+void APacPlayerController::HandleMoveRight(const FInputActionValue &Value) {
+  SubmitDirection(EPacDirection::Right);
 }

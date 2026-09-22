@@ -9,6 +9,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+struct FInputActionValue;
 
 UCLASS()
 class PACMANGAME_API APacPlayerController : public APlayerController {
@@ -17,19 +18,32 @@ class PACMANGAME_API APacPlayerController : public APlayerController {
 public:
   virtual void BeginPlay() override;
 
-  FVector2D GetMoveInput() const { return MoveInput; }
-
 protected:
   virtual void SetupInputComponent() override;
-  void HandleMove(const struct FInputActionValue &Value);
 
+private:
+  // -------------------- functions --------------------
+  void SubmitDirection(EPacDirection Direction);
+  void HandleMoveUp(const FInputActionValue &Value);
+  void HandleMoveDown(const FInputActionValue &Value);
+  void HandleMoveLeft(const FInputActionValue &Value);
+  void HandleMoveRight(const FInputActionValue &Value);
+
+  // -------------------- properties --------------------
   UPROPERTY(EditDefaultsOnly, Category = "Input")
   TObjectPtr<UInputMappingContext> PlayerMappingContext;
 
   UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputAction> MoveAction;
+  TObjectPtr<UInputAction> MoveUpAction;
 
-private:
-  FVector2D MoveInput = FVector2D::ZeroVector;
+  UPROPERTY(EditDefaultsOnly, Category = "Input")
+  TObjectPtr<UInputAction> MoveDownAction;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Input")
+  TObjectPtr<UInputAction> MoveLeftAction;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Input")
+  TObjectPtr<UInputAction> MoveRightAction;
+
   EPacDirection LastSubmittedDirection = EPacDirection::None;
 };

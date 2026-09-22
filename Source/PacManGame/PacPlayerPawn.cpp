@@ -35,3 +35,9 @@ void APacPlayerPawn::InitializeMaze(APacMaze *Maze) {
   check(GridMovementComponent);
   GridMovementComponent->InitializeMaze(Maze);
 }
+
+bool APacPlayerPawn::IsMovementBlocked() const {
+  check(GridMovementComponent);
+
+  return GridMovementComponent->IsMovementBlocked();
+}
