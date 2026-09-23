@@ -35,6 +35,9 @@ private:
   UPROPERTY(EditDefaultsOnly, Category = "Pellets")
   TSubclassOf<APacPellet> PelletClass;
 
+  UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+  TSubclassOf<APacPellet> PowerPelletClass;
+
   UPROPERTY()
   TObjectPtr<APacMaze> Maze;
 

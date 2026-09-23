@@ -108,7 +108,7 @@ bool APacMaze::ValidateMazeData() const {
     for (int32 X = 0; X < GridSize.X; ++X) {
       const TCHAR Character = Rows[Y][X];
       if (Character != TEXT('#') && Character != TEXT('.') &&
-          Character != TEXT('-')) {
+          Character != TEXT('-') && Character != TEXT('o')) {
         UE_LOG(LogTemp, Error,
                TEXT("Maze '%s' contains invalid character '%c' at (%d, %d)."),
                *MazeData->GetName(), Character, X, Y);
@@ -180,10 +180,12 @@ EPacTileType APacMaze::ParseTileCharacter(const TCHAR Character) const {
   case TEXT('.'):
     return EPacTileType::Pellet;
 
-  // case TEXT(' '):
-  //   return EPacTileType::Empty;
   case TEXT('-'):
     return EPacTileType::Empty;
+
+  case TEXT('o'):
+    return EPacTileType::PowerPellet;
+
   default:
     checkNoEntry();
     return EPacTileType::Empty;

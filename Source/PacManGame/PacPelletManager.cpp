@@ -36,7 +36,28 @@ void APacPelletManager::SpawnPellets() {
     for (int32 X = 0; X < GridSize.X; ++X) {
       const FPacGridPosition Position(X, Y);
 
-      if (Maze->GetTile(Position) != EPacTileType::Pellet) {
+      const EPacTileType TileType = Maze->GetTile(Position);
+
+      TSubclassOf<APacPellet> PelletToSpawn;
+
+      switch (TileType) {
+      case EPacTileType::Pellet:
+        PelletToSpawn = PelletClass;
+        break;
+
+      case EPacTileType::PowerPellet:
+        PelletToSpawn = PowerPelletClass;
+        break;
+
+      default:
+        continue;
+      }
+
+      if (PelletToSpawn == nullptr) {
+        UE_LOG(LogTemp, Error,
+               TEXT("PAC: No pellet class assigned for tile at (%d,%d)."), X,
+               Y);
+
         continue;
       }
 
@@ -46,7 +67,7 @@ void APacPelletManager::SpawnPellets() {
       SpawnParameters.Owner = this;
 
       APacPellet *Pellet = GetWorld()->SpawnActor<APacPellet>(
-          PelletClass, WorldPosition, FRotator::ZeroRotator, SpawnParameters);
+          PelletToSpawn, WorldPosition, FRotator::ZeroRotator, SpawnParameters);
 
       if (Pellet == nullptr) {
         UE_LOG(LogTemp, Error, TEXT("PAC: Failed to spawn pellet at (%d,%d)."),
