@@ -30,10 +30,16 @@ void APacGameMode::BeginPlay() {
 
   UE_LOG(LogTemp, Warning, TEXT("PAC: GameMode found maze '%s'."),
          *Maze->GetName());
+  PelletManager->OnAllPelletsConsumed.AddUObject(
+      this, &APacGameMode::HandleAllPelletsConsumed);
 }
 
 APacMaze *APacGameMode::GetMaze() { return Maze; }
 
 APacPelletManager *APacGameMode::GetPelletManager() const {
   return PelletManager;
+}
+
+void APacGameMode::HandleAllPelletsConsumed() {
+  UE_LOG(LogTemp, Warning, TEXT("PAC: All pellets consumed. Level complete."));
 }

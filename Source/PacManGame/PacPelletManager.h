@@ -11,7 +11,9 @@ class APacMaze;
 class APacPellet;
 class UPacGridMovementComponent;
 
+// -------------------- Delegate(Fptr,event) --------------------
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPelletConsumed, int32);
+DECLARE_MULTICAST_DELEGATE(FOnAllPelletsConsumed);
 
 UCLASS()
 class PACMANGAME_API APacPelletManager : public AActor {
@@ -25,6 +27,7 @@ public:
 
   // -------------------- properties --------------------
   FOnPelletConsumed OnPelletConsumed;
+  FOnAllPelletsConsumed OnAllPelletsConsumed;
 
 private:
   // -------------------- functions --------------------

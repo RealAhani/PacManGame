@@ -22,6 +22,8 @@ public:
   APacPelletManager *GetPelletManager() const;
 
 private:
+  void HandleAllPelletsConsumed();
+
   UPROPERTY()
   TObjectPtr<APacMaze> Maze;
   UPROPERTY()

@@ -109,6 +109,10 @@ void APacPelletManager::HandlePlayerGridPositionChanged(
 
   OnPelletConsumed.Broadcast(ScoreValue);
 
+  if (Pellets.IsEmpty()) {
+    OnAllPelletsConsumed.Broadcast();
+  }
+
   UE_LOG(LogTemp, Warning,
          TEXT("PAC: Pellet consumed at (%d,%d). Value=%d, Remaining=%d"),
          Position.X, Position.Y, ScoreValue, Pellets.Num());
