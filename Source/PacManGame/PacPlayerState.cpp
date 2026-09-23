@@ -8,4 +8,5 @@ void APacPlayerState::AddScore(const int32 Amount) {
   Current_Score += Amount;
 
   UE_LOG(LogTemp, Log, TEXT("PAC: Score changed. Score=%d"), Current_Score);
+  OnScoreChanged.Broadcast(Current_Score);
 }

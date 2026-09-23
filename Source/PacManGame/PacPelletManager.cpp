@@ -71,19 +71,26 @@ void APacPelletManager::HandlePlayerGridPositionChanged(
     return;
   }
 
-  APacPellet *Pellet = FoundPellet->Get();
-
-  if (IsValid(Pellet)) {
-    UE_LOG(LogTemp, Warning, TEXT("PAC: Pellet is Destroyed"));
-    Pellet->Destroy();
+  APacPellet *Pellet = *FoundPellet;
+  if (!IsValid(Pellet)) {
+    UE_LOG(LogTemp, Warning,
+           TEXT("PAC: Pellet for delettion is not valid "
+                ":HandlePlayerGridPositionChanged"));
+    Pellets.Remove(Position);
+    return;
   }
 
+  const int32 ScoreValue = Pellet->GetScoreValue();
+
+  Pellet->Destroy();
+
   Pellets.Remove(Position);
-  OnPelletConsumed.Broadcast(10);
+
+  OnPelletConsumed.Broadcast(ScoreValue);
 
   UE_LOG(LogTemp, Warning,
-         TEXT("PAC: Pellet consumed at (%d,%d). Remaining=%d"), Position.X,
-         Position.Y, Pellets.Num());
+         TEXT("PAC: Pellet consumed at (%d,%d). Value=%d, Remaining=%d"),
+         Position.X, Position.Y, ScoreValue, Pellets.Num());
 }
 
 void APacPelletManager::BindToPlayerMovement(

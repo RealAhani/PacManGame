@@ -21,6 +21,7 @@ public:
   void Initialize(const FPacGridPosition &InGridPosition);
 
   FPacGridPosition GetGridPosition() const { return GridPosition; }
+  int32 GetScoreValue() const { return ScoreValue; }
 
 private:
   UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -28,4 +29,7 @@ private:
 
   UPROPERTY(VisibleInstanceOnly, Category = "Pellet")
   FPacGridPosition GridPosition;
+
+  UPROPERTY(EditDefaultsOnly, Category = "Pellet", meta = (ClampMin = "0"))
+  int32 ScoreValue = 10;
 };
