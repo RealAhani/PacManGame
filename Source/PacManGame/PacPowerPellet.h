@@ -2,9 +2,11 @@
 
 #pragma once
 
+// clang-format off
 #include "CoreMinimal.h"
 #include "PacPellet.h"
 #include "PacPowerPellet.generated.h"
+// clang-format on 
 
 /**
  *

@@ -8,40 +8,45 @@
 #include "PacMaze.h"
 // clang-format on
 
-APacPlayerPawn::APacPlayerPawn() {
-  PrimaryActorTick.bCanEverTick = true;
-  PrimaryActorTick.bStartWithTickEnabled = false;
+APacPlayerPawn::APacPlayerPawn()
+{
+    PrimaryActorTick.bCanEverTick          = true;
+    PrimaryActorTick.bStartWithTickEnabled = false;
 
-  CollisionComponent =
-      CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
+    CollisionComponent = CreateDefaultSubobject<USphereComponent>(
+        TEXT("CollisionComponent"));
 
-  SetRootComponent(CollisionComponent);
+    SetRootComponent(CollisionComponent);
 
-  CollisionComponent->SetSphereRadius(40.0f);
+    CollisionComponent->SetSphereRadius(40.0f);
 
-  GridMovementComponent = CreateDefaultSubobject<UPacGridMovementComponent>(
-      TEXT("GridMovementComponent"));
+    GridMovementComponent = CreateDefaultSubobject<UPacGridMovementComponent>(
+        TEXT("GridMovementComponent"));
 
-  GridMovementComponent->SetUpdatedComponent(CollisionComponent);
+    GridMovementComponent->SetUpdatedComponent(CollisionComponent);
 }
 
-void APacPlayerPawn::SetDesiredDirection(const EPacDirection Direction) {
-  check(GridMovementComponent);
+void APacPlayerPawn::SetDesiredDirection(EPacDirection const Direction)
+{
+    check(GridMovementComponent);
 
-  GridMovementComponent->SetDesiredDirection(Direction);
+    GridMovementComponent->SetDesiredDirection(Direction);
 }
 
-void APacPlayerPawn::InitializeMaze(APacMaze *Maze) {
-  check(GridMovementComponent);
-  GridMovementComponent->InitializeMaze(Maze);
+void APacPlayerPawn::InitializeMaze(APacMaze* Maze)
+{
+    check(GridMovementComponent);
+    GridMovementComponent->InitializeMaze(Maze);
 }
 
-bool APacPlayerPawn::IsMovementBlocked() const {
-  check(GridMovementComponent);
+bool APacPlayerPawn::IsMovementBlocked() const
+{
+    check(GridMovementComponent);
 
-  return GridMovementComponent->IsMovementBlocked();
+    return GridMovementComponent->IsMovementBlocked();
 }
 
-UPacGridMovementComponent *APacPlayerPawn::GetGridMovementComponent() const {
-  return GridMovementComponent;
+UPacGridMovementComponent* APacPlayerPawn::GetGridMovementComponent() const
+{
+    return GridMovementComponent;
 }

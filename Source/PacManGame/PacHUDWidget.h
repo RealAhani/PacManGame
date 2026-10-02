@@ -9,13 +9,16 @@
 class UTextBlock;
 
 UCLASS()
-class PACMANGAME_API UPacHUDWidget : public UUserWidget {
-  GENERATED_BODY()
+class PACMANGAME_API UPacHUDWidget : public UUserWidget
+{
+    GENERATED_BODY()
 
 public:
-  void SetScore(int32 Score);
+
+    void SetScore(int32 Score);
 
 private:
-  UPROPERTY(meta = (BindWidget))
-  TObjectPtr<UTextBlock> ScoreText;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UTextBlock> ScoreText;
 };

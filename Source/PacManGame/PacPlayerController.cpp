@@ -14,138 +14,167 @@
 #include "Engine/LocalPlayer.h"
 // clang-format on
 
-void APacPlayerController::BeginPlay() {
-  Super::BeginPlay();
+void APacPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
 
-  if (!IsLocalController()) {
-    return;
-  }
+    if (!IsLocalController())
+    {
+        return;
+    }
 
-  ULocalPlayer *LocalPlayer = GetLocalPlayer();
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
 
-  if (LocalPlayer == nullptr) {
-    return;
-  }
+    if (LocalPlayer == nullptr)
+    {
+        return;
+    }
 
-  UEnhancedInputLocalPlayerSubsystem *InputSubsystem =
-      LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+    UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer->GetSubsystem<
+        UEnhancedInputLocalPlayerSubsystem>();
 
-  if (InputSubsystem == nullptr) {
-    return;
-  }
+    if (InputSubsystem == nullptr)
+    {
+        return;
+    }
 
-  if (PlayerMappingContext == nullptr) {
-    return;
-  }
+    if (PlayerMappingContext == nullptr)
+    {
+        return;
+    }
 
-  InputSubsystem->AddMappingContext(PlayerMappingContext, 0);
+    InputSubsystem->AddMappingContext(PlayerMappingContext, 0);
 
-  APacGameMode *GameMode = GetWorld()->GetAuthGameMode<APacGameMode>();
-  if (GameMode == nullptr) {
-    return;
-  }
-  APacMaze *Maze = GameMode->GetMaze();
-  if (Maze == nullptr) {
-    return;
-  }
-  // target camera of player is in maze
-  SetViewTarget(Maze);
+    APacGameMode* GameMode = GetWorld()->GetAuthGameMode<APacGameMode>();
+    if (GameMode == nullptr)
+    {
+        return;
+    }
+    APacMaze* Maze = GameMode->GetMaze();
+    if (Maze == nullptr)
+    {
+        return;
+    }
+    // target camera of player is in maze
+    SetViewTarget(Maze);
 
-  APacPlayerPawn *PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
-  if (PlayerPawn == nullptr) {
-    return;
-  }
-  PlayerPawn->InitializeMaze(Maze);
+    APacPlayerPawn* PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
+    if (PlayerPawn == nullptr)
+    {
+        return;
+    }
+    PlayerPawn->InitializeMaze(Maze);
 
-  APacPelletManager *PelletManager = GameMode->GetPelletManager();
-  if (PelletManager == nullptr) {
-    return;
-  }
+    APacPelletManager* PelletManager = GameMode->GetPelletManager();
+    if (PelletManager == nullptr)
+    {
+        return;
+    }
 
-  PelletManager->BindToPlayerMovement(PlayerPawn->GetGridMovementComponent());
+    PelletManager->BindToPlayerMovement(PlayerPawn->GetGridMovementComponent());
 
-  PelletManager->OnPelletConsumed.AddUObject(
-      this, &APacPlayerController::HandlePelletConsumed);
+    PelletManager->OnPelletConsumed
+        .AddUObject(this, &APacPlayerController::HandlePelletConsumed);
 }
 
-void APacPlayerController::SetupInputComponent() {
-  Super::SetupInputComponent();
+void APacPlayerController::SetupInputComponent()
+{
+    Super::SetupInputComponent();
 
-  UEnhancedInputComponent *EnhancedInputComponent =
-      Cast<UEnhancedInputComponent>(InputComponent);
+    UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(
+        InputComponent);
 
-  if (EnhancedInputComponent == nullptr) {
-    return;
-  }
+    if (EnhancedInputComponent == nullptr)
+    {
+        return;
+    }
 
-  if (MoveUpAction == nullptr || MoveDownAction == nullptr ||
-      MoveLeftAction == nullptr || MoveRightAction == nullptr) {
-    return;
-  }
+    if (MoveUpAction == nullptr || MoveDownAction == nullptr ||
+        MoveLeftAction == nullptr || MoveRightAction == nullptr)
+    {
+        return;
+    }
 
-  EnhancedInputComponent->BindAction(MoveUpAction, ETriggerEvent::Triggered,
-                                     this, &APacPlayerController::HandleMoveUp);
+    EnhancedInputComponent->BindAction(MoveUpAction,
+                                       ETriggerEvent::Triggered,
+                                       this,
+                                       &APacPlayerController::HandleMoveUp);
 
-  EnhancedInputComponent->BindAction(MoveDownAction, ETriggerEvent::Triggered,
-                                     this,
-                                     &APacPlayerController::HandleMoveDown);
+    EnhancedInputComponent->BindAction(MoveDownAction,
+                                       ETriggerEvent::Triggered,
+                                       this,
+                                       &APacPlayerController::HandleMoveDown);
 
-  EnhancedInputComponent->BindAction(MoveLeftAction, ETriggerEvent::Triggered,
-                                     this,
-                                     &APacPlayerController::HandleMoveLeft);
+    EnhancedInputComponent->BindAction(MoveLeftAction,
+                                       ETriggerEvent::Triggered,
+                                       this,
+                                       &APacPlayerController::HandleMoveLeft);
 
-  EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered,
-                                     this,
-                                     &APacPlayerController::HandleMoveRight);
+    EnhancedInputComponent->BindAction(MoveRightAction,
+                                       ETriggerEvent::Triggered,
+                                       this,
+                                       &APacPlayerController::HandleMoveRight);
 }
 
-void APacPlayerController::SubmitDirection(const EPacDirection Direction) {
+void APacPlayerController::SubmitDirection(EPacDirection const Direction)
+{
 
-  APacPlayerPawn *PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
+    APacPlayerPawn* PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
 
-  if (PlayerPawn == nullptr) {
-    return;
-  }
+    if (PlayerPawn == nullptr)
+    {
+        return;
+    }
 
-  if (PlayerPawn->IsMovementBlocked()) {
-    LastSubmittedDirection = EPacDirection::None;
-  }
+    if (PlayerPawn->IsMovementBlocked())
+    {
+        LastSubmittedDirection = EPacDirection::None;
+    }
 
-  if (Direction == LastSubmittedDirection) {
-    return;
-  }
+    if (Direction == LastSubmittedDirection)
+    {
+        return;
+    }
 
-  LastSubmittedDirection = Direction;
+    LastSubmittedDirection = Direction;
 
-  PlayerPawn->SetDesiredDirection(Direction);
+    PlayerPawn->SetDesiredDirection(Direction);
 
-  UE_LOG(LogTemp, Log, TEXT("PAC: Direction submitted: %d"),
-         static_cast<uint8>(Direction));
+    UE_LOG(LogTemp,
+           Log,
+           TEXT("PAC: Direction submitted: %d"),
+           static_cast<uint8>(Direction));
 }
 
-void APacPlayerController::HandleMoveUp(const FInputActionValue &Value) {
-  SubmitDirection(EPacDirection::Up);
+void APacPlayerController::HandleMoveUp(FInputActionValue const & Value)
+{
+    SubmitDirection(EPacDirection::Up);
 }
 
-void APacPlayerController::HandleMoveDown(const FInputActionValue &Value) {
-  SubmitDirection(EPacDirection::Down);
+void APacPlayerController::HandleMoveDown(FInputActionValue const & Value)
+{
+    SubmitDirection(EPacDirection::Down);
 }
 
-void APacPlayerController::HandleMoveLeft(const FInputActionValue &Value) {
-  SubmitDirection(EPacDirection::Left);
+void APacPlayerController::HandleMoveLeft(FInputActionValue const & Value)
+{
+    SubmitDirection(EPacDirection::Left);
 }
 
-void APacPlayerController::HandleMoveRight(const FInputActionValue &Value) {
-  SubmitDirection(EPacDirection::Right);
+void APacPlayerController::HandleMoveRight(FInputActionValue const & Value)
+{
+    SubmitDirection(EPacDirection::Right);
 }
 
-void APacPlayerController::HandlePelletConsumed(const int32 ScoreValue) {
-  APacPlayerState *PacPlayerState = Cast<APacPlayerState>(PlayerState);
+void APacPlayerController::HandlePelletConsumed(int32 const ScoreValue)
+{
+    APacPlayerState* PacPlayerState = Cast<APacPlayerState>(PlayerState);
 
-  if (PacPlayerState == nullptr) {
-    UE_LOG(LogTemp, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
-    return;
-  }
+    if (PacPlayerState == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
+        return;
+    }
 
-  PacPlayerState->AddScore(ScoreValue);
+    PacPlayerState->AddScore(ScoreValue);
 }

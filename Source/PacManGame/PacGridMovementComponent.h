@@ -11,59 +11,64 @@
 
 class APacMaze;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnGridPositionChanged,
-                                    const FPacGridPosition &);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnGridPositionChanged, FPacGridPosition const &);
 
 UCLASS(ClassGroup = (PacMan), meta = (BlueprintSpawnableComponent))
-class PACMANGAME_API UPacGridMovementComponent : public UPawnMovementComponent {
-  GENERATED_BODY()
+class PACMANGAME_API UPacGridMovementComponent : public UPawnMovementComponent
+{
+    GENERATED_BODY()
 
 public:
-  // -------------------- functions --------------------
-  UPacGridMovementComponent();
 
-  void SetDesiredDirection(EPacDirection Direction);
+    // -------------------- functions --------------------
+    UPacGridMovementComponent();
 
-  FPacGridPosition GetCurrentGridPosition() const;
+    void SetDesiredDirection(EPacDirection Direction);
 
-  void InitializeMaze(APacMaze *InMaze);
+    FPacGridPosition GetCurrentGridPosition() const;
 
-  bool IsMovementBlocked() const { return bMovementBlocked; }
+    void InitializeMaze(APacMaze* InMaze);
 
-  // -------------------- properties --------------------
-  FOnGridPositionChanged OnGridPositionChanged;
+    bool IsMovementBlocked() const
+    {
+        return bMovementBlocked;
+    }
+
+    // -------------------- properties --------------------
+    FOnGridPositionChanged OnGridPositionChanged;
 
 protected:
-  virtual void BeginPlay() override;
 
-  virtual void
-  TickComponent(float DeltaTime, ELevelTick TickType,
-                FActorComponentTickFunction *ThisTickFunction) override;
+    virtual void BeginPlay() override;
+
+    virtual void TickComponent(float      DeltaTime,
+                               ELevelTick TickType,
+                               FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
-  // -------------------- functions --------------------
-  bool TryStartMovement();
-  void MoveTowardTarget(float DeltaTime);
 
-  // -------------------- properties --------------------
-  UPROPERTY(EditInstanceOnly, Category = "Grid Movement")
-  TObjectPtr<APacMaze> Maze;
+    // -------------------- functions --------------------
+    bool TryStartMovement();
+    void MoveTowardTarget(float DeltaTime);
 
-  UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
-  FPacGridPosition CurrentGridPosition;
+    // -------------------- properties --------------------
+    UPROPERTY(EditInstanceOnly, Category = "Grid Movement")
+    TObjectPtr<APacMaze> Maze;
 
-  UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
-  EPacDirection CurrentDirection = EPacDirection::None;
+    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    FPacGridPosition CurrentGridPosition;
 
-  UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
-  TArray<EPacDirection> InputQueue;
+    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    EPacDirection CurrentDirection = EPacDirection::None;
 
-  UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
-  FPacGridPosition TargetGridPosition;
+    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    TArray<EPacDirection> InputQueue;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Grid Movement",
-            meta = (ClampMin = "0.0"))
-  float MovementSpeed = 300.0f;
+    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    FPacGridPosition TargetGridPosition;
 
-  bool bMovementBlocked = false;
+    UPROPERTY(EditDefaultsOnly, Category = "Grid Movement", meta = (ClampMin = "0.0"))
+    float MovementSpeed = 300.0f;
+
+    bool bMovementBlocked = false;
 };

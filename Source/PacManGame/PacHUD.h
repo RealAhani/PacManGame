@@ -9,18 +9,21 @@
 class UPacHUDWidget;
 
 UCLASS()
-class PACMANGAME_API APacHUD : public AHUD {
-  GENERATED_BODY()
+class PACMANGAME_API APacHUD : public AHUD
+{
+    GENERATED_BODY()
 
 protected:
-  virtual void BeginPlay() override;
+
+    virtual void BeginPlay() override;
 
 private:
-  void HandleScoreChanged(int32 Score);
 
-  UPROPERTY(EditDefaultsOnly, Category = "UI")
-  TSubclassOf<UPacHUDWidget> HUDWidgetClass;
+    void HandleScoreChanged(int32 Score);
 
-  UPROPERTY()
-  TObjectPtr<UPacHUDWidget> HUDWidget;
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UPacHUDWidget> HUDWidgetClass;
+
+    UPROPERTY()
+    TObjectPtr<UPacHUDWidget> HUDWidget;
 };

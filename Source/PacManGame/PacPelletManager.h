@@ -16,34 +16,37 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnPelletConsumed, int32);
 DECLARE_MULTICAST_DELEGATE(FOnAllPelletsConsumed);
 
 UCLASS()
-class PACMANGAME_API APacPelletManager : public AActor {
-  GENERATED_BODY()
+class PACMANGAME_API APacPelletManager : public AActor
+{
+    GENERATED_BODY()
 
 public:
-  // -------------------- functions --------------------
-  APacPelletManager();
-  void Initialize(APacMaze *InMaze);
-  void BindToPlayerMovement(UPacGridMovementComponent *MovementComponent);
 
-  // -------------------- properties --------------------
-  FOnPelletConsumed OnPelletConsumed;
-  FOnAllPelletsConsumed OnAllPelletsConsumed;
+    // -------------------- functions --------------------
+    APacPelletManager();
+    void Initialize(APacMaze* InMaze);
+    void BindToPlayerMovement(UPacGridMovementComponent* MovementComponent);
+
+    // -------------------- properties --------------------
+    FOnPelletConsumed     OnPelletConsumed;
+    FOnAllPelletsConsumed OnAllPelletsConsumed;
 
 private:
-  // -------------------- functions --------------------
-  void SpawnPellets();
-  void HandlePlayerGridPositionChanged(const FPacGridPosition &Position);
 
-  // -------------------- properties --------------------
-  UPROPERTY(EditDefaultsOnly, Category = "Pellets")
-  TSubclassOf<APacPellet> PelletClass;
+    // -------------------- functions --------------------
+    void SpawnPellets();
+    void HandlePlayerGridPositionChanged(FPacGridPosition const & Position);
 
-  UPROPERTY(EditDefaultsOnly, Category = "Pellets")
-  TSubclassOf<APacPellet> PowerPelletClass;
+    // -------------------- properties --------------------
+    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+    TSubclassOf<APacPellet> PelletClass;
 
-  UPROPERTY()
-  TObjectPtr<APacMaze> Maze;
+    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+    TSubclassOf<APacPellet> PowerPelletClass;
 
-  UPROPERTY()
-  TMap<FPacGridPosition, TObjectPtr<APacPellet>> Pellets;
+    UPROPERTY()
+    TObjectPtr<APacMaze> Maze;
+
+    UPROPERTY()
+    TMap<FPacGridPosition, TObjectPtr<APacPellet>> Pellets;
 };

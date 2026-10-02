@@ -13,21 +13,24 @@ class USphereComponent;
 class UPacGridMovementComponent;
 class APacMaze;
 UCLASS()
-class PACMANGAME_API APacPlayerPawn : public APawn {
-  GENERATED_BODY()
+class PACMANGAME_API APacPlayerPawn : public APawn
+{
+    GENERATED_BODY()
 
 public:
-  // Sets default values for this pawn's properties
-  APacPlayerPawn();
-  void SetDesiredDirection(EPacDirection Direction);
-  void InitializeMaze(APacMaze *Maze);
-  bool IsMovementBlocked() const;
-  UPacGridMovementComponent *GetGridMovementComponent() const;
+
+    // Sets default values for this pawn's properties
+    APacPlayerPawn();
+    void                       SetDesiredDirection(EPacDirection Direction);
+    void                       InitializeMaze(APacMaze* Maze);
+    bool                       IsMovementBlocked() const;
+    UPacGridMovementComponent* GetGridMovementComponent() const;
 
 private:
-  UPROPERTY(VisibleAnywhere, Category = "Components")
-  TObjectPtr<USphereComponent> CollisionComponent;
 
-  UPROPERTY(VisibleAnywhere, Category = "Components")
-  TObjectPtr<UPacGridMovementComponent> GridMovementComponent;
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<USphereComponent> CollisionComponent;
+
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UPacGridMovementComponent> GridMovementComponent;
 };

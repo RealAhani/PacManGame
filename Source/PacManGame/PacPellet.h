@@ -12,24 +12,33 @@
 class USceneComponent;
 
 UCLASS()
-class PACMANGAME_API APacPellet : public AActor {
-  GENERATED_BODY()
+class PACMANGAME_API APacPellet : public AActor
+{
+    GENERATED_BODY()
 
 public:
-  // Sets default values for this actor's properties
-  APacPellet();
-  void Initialize(const FPacGridPosition &InGridPosition);
 
-  FPacGridPosition GetGridPosition() const { return GridPosition; }
-  int32 GetScoreValue() const { return ScoreValue; }
+    // Sets default values for this actor's properties
+    APacPellet();
+    void Initialize(FPacGridPosition const & InGridPosition);
+
+    FPacGridPosition GetGridPosition() const
+    {
+        return GridPosition;
+    }
+    int32 GetScoreValue() const
+    {
+        return ScoreValue;
+    }
 
 private:
-  UPROPERTY(VisibleAnywhere, Category = "Components")
-  TObjectPtr<USceneComponent> BaseComponent;
 
-  UPROPERTY(VisibleInstanceOnly, Category = "Pellet")
-  FPacGridPosition GridPosition;
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<USceneComponent> BaseComponent;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Pellet", meta = (ClampMin = "0"))
-  int32 ScoreValue = 10;
+    UPROPERTY(VisibleInstanceOnly, Category = "Pellet")
+    FPacGridPosition GridPosition;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Pellet", meta = (ClampMin = "0"))
+    int32 ScoreValue = 10;
 };

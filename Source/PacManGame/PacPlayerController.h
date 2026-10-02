@@ -12,39 +12,43 @@ class UInputMappingContext;
 struct FInputActionValue;
 
 UCLASS()
-class PACMANGAME_API APacPlayerController : public APlayerController {
-  GENERATED_BODY()
+class PACMANGAME_API APacPlayerController : public APlayerController
+{
+    GENERATED_BODY()
 
 public:
-  virtual void BeginPlay() override;
+
+    virtual void BeginPlay() override;
 
 protected:
-  virtual void SetupInputComponent() override;
+
+    virtual void SetupInputComponent() override;
 
 private:
-  // -------------------- functions --------------------
-  void SubmitDirection(EPacDirection Direction);
-  void HandleMoveUp(const FInputActionValue &Value);
-  void HandleMoveDown(const FInputActionValue &Value);
-  void HandleMoveLeft(const FInputActionValue &Value);
-  void HandleMoveRight(const FInputActionValue &Value);
-  void HandlePelletConsumed(int32 ScoreValue);
 
-  // -------------------- properties --------------------
-  UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputMappingContext> PlayerMappingContext;
+    // -------------------- functions --------------------
+    void SubmitDirection(EPacDirection Direction);
+    void HandleMoveUp(FInputActionValue const & Value);
+    void HandleMoveDown(FInputActionValue const & Value);
+    void HandleMoveLeft(FInputActionValue const & Value);
+    void HandleMoveRight(FInputActionValue const & Value);
+    void HandlePelletConsumed(int32 ScoreValue);
 
-  UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputAction> MoveUpAction;
+    // -------------------- properties --------------------
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputMappingContext> PlayerMappingContext;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputAction> MoveDownAction;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> MoveUpAction;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputAction> MoveLeftAction;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> MoveDownAction;
 
-  UPROPERTY(EditDefaultsOnly, Category = "Input")
-  TObjectPtr<UInputAction> MoveRightAction;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> MoveLeftAction;
 
-  EPacDirection LastSubmittedDirection = EPacDirection::None;
+    UPROPERTY(EditDefaultsOnly, Category = "Input")
+    TObjectPtr<UInputAction> MoveRightAction;
+
+    EPacDirection LastSubmittedDirection = EPacDirection::None;
 };

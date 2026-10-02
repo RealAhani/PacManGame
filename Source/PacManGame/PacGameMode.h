@@ -11,21 +11,31 @@
 class APacMaze;
 class APacPelletManager;
 class APacPlayerState;
+class APacGhostManager;
 
 UCLASS()
-class PACMANGAME_API APacGameMode : public AGameModeBase {
-  GENERATED_BODY()
+class PACMANGAME_API APacGameMode : public AGameModeBase
+{
+    GENERATED_BODY()
+
 public:
-  APacGameMode();
-  virtual void BeginPlay() override;
-  APacMaze *GetMaze();
-  APacPelletManager *GetPelletManager() const;
+
+    APacGameMode();
+    virtual void       BeginPlay() override;
+    APacMaze*          GetMaze();
+    APacPelletManager* GetPelletManager() const;
+    APacGhostManager*  GetGhostManager() const;
 
 private:
-  void HandleAllPelletsConsumed();
 
-  UPROPERTY()
-  TObjectPtr<APacMaze> Maze;
-  UPROPERTY()
-  TObjectPtr<APacPelletManager> PelletManager;
+    void HandleAllPelletsConsumed();
+
+    UPROPERTY()
+    TObjectPtr<APacMaze> Maze;
+
+    UPROPERTY()
+    TObjectPtr<APacPelletManager> PelletManager;
+
+    UPROPERTY()
+    TObjectPtr<APacGhostManager> GhostManager;
 };
