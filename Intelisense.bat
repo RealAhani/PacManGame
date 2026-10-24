@@ -1,0 +1,1 @@
+"C:\_dev\UE_5.5\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="C:\Users\ahani\Documents\Unreal Projects\PacManGame\PacManGame.uproject" PacManGameEditor Win64 Development -OutputDir="C:\Users\ahani\Documents\Unreal Projects\PacManGame"

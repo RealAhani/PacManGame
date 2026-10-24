@@ -26,6 +26,7 @@ public:
     void SetDesiredDirection(EPacDirection Direction);
 
     FPacGridPosition GetCurrentGridPosition() const;
+    EPacDirection    GetCurrentDirection() const;
 
     void InitializeMaze(APacMaze* InMaze);
 
@@ -33,6 +34,7 @@ public:
     {
         return bMovementBlocked;
     }
+
 
     // -------------------- properties --------------------
     FOnGridPositionChanged OnGridPositionChanged;

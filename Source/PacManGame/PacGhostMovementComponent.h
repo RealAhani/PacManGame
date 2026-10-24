@@ -22,9 +22,11 @@ public:
 
     UPacGhostMovementComponent();
     void InitializeMaze(APacMaze* InMaze, FPacGridPosition const & StartPosition);
-    void SetDirection(EPacDirection Direction);
+    void             SetDirection(EPacDirection Direction);
+    FPacGridPosition GetCurrentGridPosition() const;
+    EPacDirection    GetCurrentDirection() const;
 
-    FPacGridPosition            GetCurrentGridPosition() const;
+
     FOnGhostGridPositionChanged OnGridPositionChanged;
 
 protected:

@@ -51,6 +51,11 @@ FPacGridPosition UPacGhostMovementComponent::GetCurrentGridPosition() const
     return CurrentGridPosition;
 }
 
+EPacDirection UPacGhostMovementComponent::GetCurrentDirection() const
+{
+    return CurrentDirection;
+}
+
 void UPacGhostMovementComponent::InitializeMaze(APacMaze* InMaze,
                                                 FPacGridPosition const & StartPosition)
 {
@@ -74,7 +79,7 @@ bool UPacGhostMovementComponent::TryStartMovement()
 {
     UE_LOG(LogTemp,
            Warning,
-           TEXT("PAC: Ghost TryStartMovement. Position=(%d,%d), Direction=%d"),
+           TEXT("PAC: Ghost TryStartMovement. Position=(%d,%d),Direction=%d"),
            CurrentGridPosition.X,
            CurrentGridPosition.Y,
            static_cast<uint8>(CurrentDirection));

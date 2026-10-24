@@ -81,6 +81,11 @@ FPacGridPosition UPacGridMovementComponent::GetCurrentGridPosition() const
     return CurrentGridPosition;
 }
 
+EPacDirection UPacGridMovementComponent::GetCurrentDirection() const
+{
+    return CurrentDirection;
+}
+
 bool UPacGridMovementComponent::TryStartMovement()
 {
 

@@ -16,6 +16,7 @@ class PACMANGAME_API APacGhostAIController : public AAIController
 public:
 
     APacGhostAIController();
+    void StartStateTree();
 
 private:
 
