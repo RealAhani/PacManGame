@@ -22,7 +22,7 @@ public:
 
     // Sets default values for this actor's properties
     APacMaze();
-
+    // -------------------- functions --------------------
     bool         IsValidGridPosition(FPacGridPosition const & Position) const;
     EPacTileType GetTile(FPacGridPosition const & Position) const;
     void    SetTile(FPacGridPosition const & Position, EPacTileType TileType);
@@ -35,8 +35,7 @@ public:
                                     EPacDirection            Direction,
                                     FPacGridPosition &       OutNeighbor) const;
     bool TryGetTile(FPacGridPosition const & Position, EPacTileType & OutTile) const;
-    // DEBUG_DRAW
-    void                             DrawDebugMaze() const;
+    void                             DrawDebugMaze() const;  // DEBUG_DRAW
     FPacGridPosition                 GetPlayerStart() const;
     TArray<FPacGridPosition> const & GetGhostStarts() const;
     void                             InitializeRuntime();

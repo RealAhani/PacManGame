@@ -28,6 +28,7 @@ void APacGhostAIController::StartStateTree()
            TEXT("PAC: Controller=%s | Controlled Pawn=%s"),
            *GetName(),
            *GetNameSafe(GetPawn()));
+
     StateTreeAIComponent->StartLogic();
 
     UE_LOG(LogTemp, Log, TEXT("PAC: Ghost StateTree started."));

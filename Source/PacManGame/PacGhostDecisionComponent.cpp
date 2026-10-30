@@ -87,7 +87,7 @@ void UPacGhostDecisionComponent::SetBlinkyMovementComponent(
 }
 
 void UPacGhostDecisionComponent::HandlePlayerGridPositionChanged(
-    FPacGridPosition const & Position)
+    [[maybe_unused]] FPacGridPosition const & Position /*unused parameter*/)
 {
     if (BehaviorMode == EPacGhostBehaviorMode::Chase)
     {
@@ -97,13 +97,18 @@ void UPacGhostDecisionComponent::HandlePlayerGridPositionChanged(
 
 void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPosition)
 {
-    if (Maze == nullptr || !Maze->IsWalkable(TargetPosition))
+    if (!Maze->IsWalkable(TargetPosition))
     {
         UE_LOG(LogTemp,
                Error,
                TEXT("PAC: Invalid Scatter target (%d,%d)."),
                TargetPosition.X,
                TargetPosition.Y);
+        return;
+    }
+    if (Maze == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PAC: Maze is null"));
         return;
     }
 
@@ -126,9 +131,16 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
 {
     if (BehaviorMode == NewMode)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Ghost behavior mode is repetetive"));
         return;
     }
+
+    bool const bWasScatterOrChase = BehaviorMode == EPacGhostBehaviorMode::Scatter ||
+                                    BehaviorMode == EPacGhostBehaviorMode::Chase;
+
+    bool const bIsScatterOrChase = NewMode == EPacGhostBehaviorMode::Scatter ||
+                                   NewMode == EPacGhostBehaviorMode::Chase;
+
+    bAllowReverseOnNextDecision = bWasScatterOrChase && bIsScatterOrChase;
 
     BehaviorMode = NewMode;
 
@@ -138,6 +150,8 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
            *UEnum::GetValueAsString(BehaviorMode));
 
     ChooseDirection();
+
+    bAllowReverseOnNextDecision = false;
 }
 
 void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonality)
@@ -150,7 +164,8 @@ void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonal
            *UEnum::GetValueAsString(Personality));
 }
 
-void UPacGhostDecisionComponent::HandleGridPositionChanged(FPacGridPosition const & Position)
+void UPacGhostDecisionComponent::HandleGridPositionChanged(
+    [[maybe_unused]] FPacGridPosition const & Position)
 {
     ChooseDirection();
 }
@@ -239,74 +254,113 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
         MovementComponent->SetDirection(EPacDirection::None);
         return true;
     }
-
     EPacDirection const Directions[] = {EPacDirection::Up,
                                         EPacDirection::Down,
                                         EPacDirection::Left,
                                         EPacDirection::Right};
 
-    TArray<FPacGridPosition>              Queue;
-    TSet<FPacGridPosition>                Visited;
-    TMap<FPacGridPosition, EPacDirection> FirstDirection;
+    EPacDirection const CurrentDirection = MovementComponent->GetCurrentDirection();
 
-    Queue.Add(StartPosition);
-    Visited.Add(StartPosition);
+    EPacDirection const OppositeDirection = GetOppositeDirection(CurrentDirection);
 
-    for (int32 QueueIndex = 0; QueueIndex < Queue.Num(); ++QueueIndex)
+    // Try to find a path, optionally allowing an immediate reversal.
+    auto FindPath = [&](bool bAllowReverse, EPacDirection & OutDirection) -> bool
     {
-        FPacGridPosition const CurrentPosition = Queue[QueueIndex];
+        TArray<FPacGridPosition>              Queue;
+        TSet<FPacGridPosition>                Visited;
+        TMap<FPacGridPosition, EPacDirection> FirstDirection;
 
-        for (EPacDirection const Direction : Directions)
+        Queue.Add(StartPosition);
+        Visited.Add(StartPosition);
+
+        for (int32 QueueIndex = 0; QueueIndex < Queue.Num(); ++QueueIndex)
         {
-            FPacGridPosition NeighborPosition;
+            FPacGridPosition const CurrentPosition = Queue[QueueIndex];
 
-            if (!Maze->TryGetNeighbor(CurrentPosition, Direction, NeighborPosition))
+            for (EPacDirection const Direction : Directions)
             {
-                continue;
-            }
+                FPacGridPosition NeighborPosition;
 
-            if (!Maze->IsWalkable(NeighborPosition) ||
-                Visited.Contains(NeighborPosition))
-            {
-                continue;
-            }
-
-            Visited.Add(NeighborPosition);
-
-            EPacDirection FirstStep = Direction;
-
-            if (CurrentPosition != StartPosition)
-            {
-                EPacDirection const* ExistingFirstStep = FirstDirection.Find(
-                    CurrentPosition);
-
-                if (ExistingFirstStep == nullptr)
+                if (!Maze->TryGetNeighbor(CurrentPosition, Direction, NeighborPosition))
                 {
                     continue;
                 }
 
-                FirstStep = *ExistingFirstStep;
+                if (!Maze->IsWalkable(NeighborPosition) ||
+                    Visited.Contains(NeighborPosition))
+                {
+                    continue;
+                }
+
+                // Only filter reversals on the first step.
+                if (CurrentPosition == StartPosition && !bAllowReverse &&
+                    Direction == OppositeDirection)
+                {
+                    continue;
+                }
+
+                Visited.Add(NeighborPosition);
+
+                EPacDirection FirstStep = Direction;
+
+                if (CurrentPosition != StartPosition)
+                {
+                    EPacDirection const* ExistingFirstStep = FirstDirection.Find(
+                        CurrentPosition);
+
+                    if (ExistingFirstStep == nullptr)
+                    {
+                        continue;
+                    }
+
+                    FirstStep = *ExistingFirstStep;
+                }
+
+                FirstDirection.Add(NeighborPosition, FirstStep);
+
+                if (NeighborPosition == ResolvedTargetPosition)
+                {
+                    OutDirection = FirstStep;
+                    return true;
+                }
+
+                Queue.Add(NeighborPosition);
             }
-
-            FirstDirection.Add(NeighborPosition, FirstStep);
-
-            if (NeighborPosition == ResolvedTargetPosition)
-            {
-                MovementComponent->SetDirection(FirstStep);
-                return true;
-            }
-
-            Queue.Add(NeighborPosition);
         }
+
+        return false;
+    };
+
+    EPacDirection ChosenDirection = EPacDirection::None;
+
+    // First prefer a route that doesn't reverse direction.
+    if (FindPath(false, ChosenDirection))
+    {
+        MovementComponent->SetDirection(ChosenDirection);
+        return true;
+    }
+
+    // On a mode switch, allow a reversal immediately.
+    if (bAllowReverseOnNextDecision && FindPath(true, ChosenDirection))
+    {
+        MovementComponent->SetDirection(ChosenDirection);
+        return true;
+    }
+
+    // Otherwise, allow a reversal only if no alternative route exists.
+    if (FindPath(true, ChosenDirection))
+    {
+        MovementComponent->SetDirection(ChosenDirection);
+        return true;
     }
 
     UE_LOG(LogTemp,
-           Error,
-           TEXT("PAC: No path from (%d,%d) to Scatter target (%d,%d)."),
+           Warning,
+           TEXT("PAC: No path from (%d,%d) to target (%d,%d)."),
            StartPosition.X,
            StartPosition.Y,
-           TargetPosition.X,
-           TargetPosition.Y);
+           ResolvedTargetPosition.X,
+           ResolvedTargetPosition.Y);
 
     return false;
 }

@@ -12,11 +12,6 @@ UPacGridMovementComponent::UPacGridMovementComponent()
 
     bAutoActivate = true;
 }
-void UPacGridMovementComponent::BeginPlay()
-{
-    Super::BeginPlay();
-    // SetComponentTickEnabled(false);
-}
 
 void UPacGridMovementComponent::TickComponent(
     float                        DeltaTime,

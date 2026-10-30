@@ -27,11 +27,20 @@ void APacPelletManager::SpawnPellets()
 {
     check(Maze);
 
-    if (PelletClass == nullptr)
+    if (PelletClass == nullptr || PowerPelletClass == nullptr)
     {
-        UE_LOG(LogTemp,
-               Error,
-               TEXT("PAC: PelletManager has no PelletClass assigned."));
+        if (PelletClass == nullptr)
+        {
+            UE_LOG(LogTemp,
+                   Error,
+                   TEXT("PAC: PelletManager has no PelletClass assigned"));
+        }
+        if (PowerPelletClass == nullptr)
+        {
+            UE_LOG(LogTemp,
+                   Error,
+                   TEXT("PAC: PelletManager has no PowerPelletClass assigned"));
+        }
         return;
     }
 

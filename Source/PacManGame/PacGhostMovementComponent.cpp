@@ -9,8 +9,7 @@ UPacGhostMovementComponent::UPacGhostMovementComponent()
 {
     PrimaryComponentTick.bCanEverTick          = true;
     PrimaryComponentTick.bStartWithTickEnabled = true;
-
-    bAutoActivate = true;
+    bAutoActivate                              = true;
 }
 
 void UPacGhostMovementComponent::TickComponent(

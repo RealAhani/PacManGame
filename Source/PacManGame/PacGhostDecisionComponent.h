@@ -53,19 +53,15 @@ public:
 
 private:
 
-    void HandleGridPositionChanged(FPacGridPosition const & Position);
-
+    void HandleGridPositionChanged([[maybe_unused]] FPacGridPosition const & Position);
     void ChooseDirection();
-
     bool ChooseDirectionTowardTarget(FPacGridPosition const & TargetPosition);
-
     bool TryResolveWalkableTarget(FPacGridPosition const & DesiredTarget,
                                   FPacGridPosition &       OutTarget) const;
-
     bool IsDirectionWalkable(FPacGridPosition const & Position,
                              EPacDirection            Direction) const;
-
-    void HandlePlayerGridPositionChanged(FPacGridPosition const & Position);
+    void HandlePlayerGridPositionChanged(
+        [[maybe_unused]] FPacGridPosition const & Position);
 
     UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
     EPacGhostPersonality Personality = EPacGhostPersonality::Blinky;
@@ -90,4 +86,6 @@ private:
 
     UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
     bool bHasScatterTarget = false;
+
+    bool bAllowReverseOnNextDecision = false;
 };
