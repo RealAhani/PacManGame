@@ -33,6 +33,7 @@ void APacGameMode::BeginPlay()
     PelletManager->Initialize(Maze);
 
     UE_LOG(LogTemp, Warning, TEXT("PAC: GameMode found maze '%s'."), *Maze->GetName());
+
     PelletManager->OnAllPelletsConsumed
         .AddUObject(this, &APacGameMode::HandleAllPelletsConsumed);
 
