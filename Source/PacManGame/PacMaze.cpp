@@ -387,7 +387,7 @@ void APacMaze::DrawDebugMaze() const
 
             FVector const WorldPosition = GridToWorld(Position);
 
-            FVector const BoxExtent(TileSize * 0.45f, TileSize * 0.45f, 10.0f);
+            FVector const BoxExtent = WallExtent;
 
             if (Tile == EPacTileType::Wall)
             {

@@ -2,17 +2,31 @@
 
 // clang-format off
 #include "PacPelletManager.h"
-
 #include "PacMaze.h"
-#include "PacPellet.h"
 #include "PacGridMovementComponent.h"
+
+#include "Components/InstancedStaticMeshComponent.h"
 // clang-format on
 
 // Sets default values
 APacPelletManager::APacPelletManager()
 {
     PrimaryActorTick.bCanEverTick = false;
+    NormalPelletInstances = CreateDefaultSubobject<UInstancedStaticMeshComponent>(
+        TEXT("NormalPelletInstances"));
+
+    SetRootComponent(NormalPelletInstances);
+
+    PowerPelletInstances = CreateDefaultSubobject<UInstancedStaticMeshComponent>(
+        TEXT("PowerPelletInstances"));
+
+    PowerPelletInstances->SetupAttachment(RootComponent);
+
+    NormalPelletInstances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+    PowerPelletInstances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
 
 void APacPelletManager::Initialize(APacMaze* InMaze)
 {
@@ -26,23 +40,21 @@ void APacPelletManager::Initialize(APacMaze* InMaze)
 void APacPelletManager::SpawnPellets()
 {
     check(Maze);
-
-    if (PelletClass == nullptr || PowerPelletClass == nullptr)
+    // this->SetActorLocationAndRotation(Maze->GetActorLocation() - Maze->WallExtent,
+    //                                   Maze->GetActorRotation());
+    if (NormalPelletInstances->GetStaticMesh() == nullptr ||
+        PowerPelletInstances->GetStaticMesh() == nullptr)
     {
-        if (PelletClass == nullptr)
-        {
-            UE_LOG(LogTemp,
-                   Error,
-                   TEXT("PAC: PelletManager has no PelletClass assigned"));
-        }
-        if (PowerPelletClass == nullptr)
-        {
-            UE_LOG(LogTemp,
-                   Error,
-                   TEXT("PAC: PelletManager has no PowerPelletClass assigned"));
-        }
+        UE_LOG(LogTemp,
+               Error,
+               TEXT("PAC: PelletManager is missing an ISM static mesh."));
         return;
     }
+
+    Pellets.Empty();
+
+    NormalPelletInstances->ClearInstances();
+    PowerPelletInstances->ClearInstances();
 
     FIntPoint const GridSize = Maze->GetGridSize();
 
@@ -54,90 +66,100 @@ void APacPelletManager::SpawnPellets()
 
             EPacTileType const TileType = Maze->GetTile(Position);
 
-            TSubclassOf<APacPellet> PelletToSpawn;
+            bool  bIsPowerPellet = false;
+            int32 ScoreValue     = 0;
 
             switch (TileType)
             {
                 case EPacTileType::Pellet:
-                    PelletToSpawn = PelletClass;
+                    ScoreValue = NormalPelletScore;
                     break;
 
                 case EPacTileType::PowerPellet:
-                    PelletToSpawn = PowerPelletClass;
+                    bIsPowerPellet = true;
+                    ScoreValue     = PowerPelletScore;
                     break;
 
                 default:
                     continue;
             }
+            FVector InstanceScale = bIsPowerPellet ? FVector(0.3f) : FVector(1.0f);
 
-            if (PelletToSpawn == nullptr)
-            {
-                UE_LOG(LogTemp,
-                       Error,
-                       TEXT("PAC: No pellet class assigned for tile at "
-                            "(%d,%d)."),
-                       X,
-                       Y);
+            FTransform InstanceTransform;
+            InstanceTransform.SetLocation(Maze->GridToWorld(Position));
+            InstanceTransform.SetRotation(FQuat::Identity);
+            InstanceTransform.SetScale3D(InstanceScale);
 
-                continue;
-            }
 
-            FVector const WorldPosition = Maze->GridToWorld(Position);
+            UInstancedStaticMeshComponent* Instances = bIsPowerPellet
+                                                           ? PowerPelletInstances
+                                                           : NormalPelletInstances;
 
-            FActorSpawnParameters SpawnParameters;
-            SpawnParameters.Owner = this;
+            int32 const InstanceIndex = Instances->AddInstance(InstanceTransform, true);
+            // int32 const
+            //     InstanceIndex = Instances->AddInstance(FTransform(FRotator::ZeroRotator,
+            //                                                       Maze->GridToWorld(
+            //                                                           Position)),
+            //                                            true);
 
-            APacPellet* Pellet = GetWorld()->SpawnActor<APacPellet>(PelletToSpawn,
-                                                                    WorldPosition,
-                                                                    FRotator::ZeroRotator,
-                                                                    SpawnParameters);
+            FPacPelletData PelletData;
+            PelletData.GridPosition   = Position;
+            PelletData.ScoreValue     = ScoreValue;
+            PelletData.InstanceIndex  = InstanceIndex;
+            PelletData.bIsPowerPellet = bIsPowerPellet;
 
-            if (Pellet == nullptr)
-            {
-                UE_LOG(LogTemp,
-                       Error,
-                       TEXT("PAC: Failed to spawn pellet at (%d,%d)."),
-                       X,
-                       Y);
-
-                continue;
-            }
-            Pellet->Initialize(Position);
-
-            Pellets.Add(Position, Pellet);
+            Pellets.Add(Position, PelletData);
         }
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("PAC: Spawned %d pellets."), Pellets.Num());
+    UE_LOG(LogTemp, Log, TEXT("PAC: Created %d pellet instances."), Pellets.Num());
 }
 
 void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const & Position)
 {
-    TObjectPtr<APacPellet>* FoundPellet = Pellets.Find(Position);
+    FPacPelletData* FoundPellet = Pellets.Find(Position);
 
     if (FoundPellet == nullptr)
     {
         return;
     }
 
-    APacPellet* Pellet = *FoundPellet;
-    if (!IsValid(Pellet))
+    FPacPelletData const PelletData = *FoundPellet;
+
+    UInstancedStaticMeshComponent* Instances = PelletData.bIsPowerPellet
+                                                   ? PowerPelletInstances
+                                                   : NormalPelletInstances;
+
+    if (!IsValid(Instances) || !Instances->IsValidInstance(PelletData.InstanceIndex))
     {
         UE_LOG(LogTemp,
                Warning,
-               TEXT("PAC: Pellet for delettion is not valid "
-                    ":HandlePlayerGridPositionChanged"));
+               TEXT("PAC: Invalid pellet instance at (%d,%d)."),
+               Position.X,
+               Position.Y);
+
         Pellets.Remove(Position);
         return;
     }
 
-    int32 const ScoreValue = Pellet->GetScoreValue();
-
-    Pellet->Destroy();
+    Instances->RemoveInstance(PelletData.InstanceIndex);
 
     Pellets.Remove(Position);
 
-    OnPelletConsumed.Broadcast(ScoreValue);
+    // Removing an ISM instance can shift the indices of later instances.
+    // Update the stored indices for the affected pellet type.
+    for (TPair<FPacGridPosition, FPacPelletData> & Pair : Pellets)
+    {
+        FPacPelletData & OtherPellet = Pair.Value;
+
+        if (OtherPellet.bIsPowerPellet == PelletData.bIsPowerPellet &&
+            OtherPellet.InstanceIndex > PelletData.InstanceIndex)
+        {
+            --OtherPellet.InstanceIndex;
+        }
+    }
+
+    OnPelletConsumed.Broadcast(PelletData.ScoreValue);
 
     if (Pellets.IsEmpty())
     {
@@ -145,11 +167,11 @@ void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const &
     }
 
     UE_LOG(LogTemp,
-           Warning,
+           Log,
            TEXT("PAC: Pellet consumed at (%d,%d). Value=%d, Remaining=%d"),
            Position.X,
            Position.Y,
-           ScoreValue,
+           PelletData.ScoreValue,
            Pellets.Num());
 }
 

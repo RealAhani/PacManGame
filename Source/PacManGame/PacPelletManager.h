@@ -8,12 +8,20 @@
 // clang-format on
 
 class APacMaze;
-class APacPellet;
 class UPacGridMovementComponent;
+class UInstancedStaticMeshComponent;
 
 // -------------------- Delegate(Fptr,event) --------------------
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPelletConsumed, int32);
 DECLARE_MULTICAST_DELEGATE(FOnAllPelletsConsumed);
+
+struct FPacPelletData
+{
+    FPacGridPosition GridPosition;
+    bool             bIsPowerPellet = false;
+    int32            ScoreValue     = 0;
+    int32            InstanceIndex  = INDEX_NONE;
+};
 
 UCLASS()
 class PACMANGAME_API APacPelletManager : public AActor
@@ -38,15 +46,21 @@ private:
     void HandlePlayerGridPositionChanged(FPacGridPosition const & Position);
 
     // -------------------- properties --------------------
-    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
-    TSubclassOf<APacPellet> PelletClass;
 
     UPROPERTY(EditDefaultsOnly, Category = "Pellets")
-    TSubclassOf<APacPellet> PowerPelletClass;
+    TObjectPtr<UInstancedStaticMeshComponent> NormalPelletInstances;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+    TObjectPtr<UInstancedStaticMeshComponent> PowerPelletInstances;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Pellets", meta = (ClampMin = "0"))
+    int32 NormalPelletScore = 10;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Pellets", meta = (ClampMin = "0"))
+    int32 PowerPelletScore = 50;
 
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;
 
-    UPROPERTY()
-    TMap<FPacGridPosition, TObjectPtr<APacPellet>> Pellets;
+    TMap<FPacGridPosition, FPacPelletData> Pellets;
 };

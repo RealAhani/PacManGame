@@ -41,6 +41,7 @@ public:
     void                             InitializeRuntime();
     UCameraComponent*                GetCameraComponent() const;
 
+
 protected:
 
     // Called when the game starts or when spawned
@@ -77,4 +78,9 @@ private:
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComponent;
+
+public:
+
+    // -------------------- properties --------------------
+    FVector const WallExtent = FVector(50.0, 50.0, 10.0);
 };
