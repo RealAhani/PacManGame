@@ -89,7 +89,12 @@ void UPacGhostDecisionComponent::SetBlinkyMovementComponent(
 void UPacGhostDecisionComponent::HandlePlayerGridPositionChanged(
     [[maybe_unused]] FPacGridPosition const & Position /*unused parameter*/)
 {
-    if (BehaviorMode == EPacGhostBehaviorMode::Chase)
+    //    While the ghost is between tiles, the decision is made on arrival
+    // (HandleGridPositionChanged) using the latest player position, so
+    // deciding now would only be thrown away. Only re-decide a ghost th
+    // is standing still.
+    if (BehaviorMode == EPacGhostBehaviorMode::Chase &&
+        MovementComponent != nullptr && !MovementComponent->IsMoving())
     {
         ChooseDirection();
     }
@@ -149,14 +154,21 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
            TEXT("PAC: Ghost behavior mode changed to %s"),
            *UEnum::GetValueAsString(BehaviorMode));
 
-    ChooseDirection();
-
-    bAllowReverseOnNextDecision = false;
+    // A mid-move switch waits for the next tile. The reversal permission
+    // stays set until HandleGridPositionChanged() consumes it.
+    if (!MovementComponent->IsMoving())
+    {
+        ChooseDirection();
+        bAllowReverseOnNextDecision = false;
+    }
 }
 
 void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonality)
 {
+    // The ghost just arrived on a tile: this is the real decision point.
     Personality = NewPersonality;
+    // A pending "reverse after mode switch" permission is used up once.
+    bAllowReverseOnNextDecision = false;
 
     UE_LOG(LogTemp,
            Warning,
@@ -248,20 +260,23 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
     }
 
 
-    // If we have reached the target, stop moving.
+    // Standing on the target (a scatter corner, or Pac-Man's tile): keep
+    // moving instead of parking. Because the ghost may not reverse, the next
+    // decision routes it back around the target, so it circles the corner.
     if (StartPosition == ResolvedTargetPosition)
     {
-        MovementComponent->SetDirection(EPacDirection::None);
-        return true;
+        return ChooseRandomDirection();
     }
     EPacDirection const Directions[] = {EPacDirection::Up,
                                         EPacDirection::Down,
                                         EPacDirection::Left,
                                         EPacDirection::Right};
 
-    EPacDirection const CurrentDirection = MovementComponent->GetCurrentDirection();
+    // Use the direction the ghost really travelled to get here, not the last
+    // decision that was stored.
+    EPacDirection const TravelDirection = MovementComponent->GetTravelDirection();
 
-    EPacDirection const OppositeDirection = GetOppositeDirection(CurrentDirection);
+    EPacDirection const OppositeDirection = GetOppositeDirection(TravelDirection);
 
     // Try to find a path, optionally allowing an immediate reversal.
     auto FindPath = [&](bool bAllowReverse, EPacDirection & OutDirection) -> bool
@@ -471,6 +486,14 @@ void UPacGhostDecisionComponent::ChooseDirection()
         return;
     }
 
+    ChooseRandomDirection();
+}
+
+bool UPacGhostDecisionComponent::ChooseRandomDirection()
+{
+    check(Maze);
+    check(MovementComponent);
+
     FPacGridPosition const CurrentPosition = MovementComponent->GetCurrentGridPosition();
 
     UE_LOG(LogTemp,
@@ -486,17 +509,32 @@ void UPacGhostDecisionComponent::ChooseDirection()
                                         EPacDirection::Left,
                                         EPacDirection::Right};
 
+    EPacDirection const OppositeTravel = GetOppositeDirection(
+        MovementComponent->GetTravelDirection());
     for (EPacDirection const Direction : Directions)
     {
-        if (IsDirectionWalkable(CurrentPosition, Direction))
+        if (!IsDirectionWalkable(CurrentPosition, Direction))
         {
-            ValidDirections.Add(Direction);
+            continue;
         }
+        // No reversing unless the ghost is allowed to (mode switch).
+        if (Direction == OppositeTravel && !bAllowReverseOnNextDecision)
+        {
+            continue;
+        }
+
+        ValidDirections.Add(Direction);
+    }
+    // Dead end: reversing is the only option.
+    if (ValidDirections.IsEmpty() && OppositeTravel != EPacDirection::None &&
+        IsDirectionWalkable(CurrentPosition, OppositeTravel))
+    {
+        ValidDirections.Add(OppositeTravel);
     }
 
     if (ValidDirections.IsEmpty())
     {
-        return;
+        return false;
     }
 
     int32 const RandomIndex = FMath::RandRange(0, ValidDirections.Num() - 1);
@@ -509,4 +547,5 @@ void UPacGhostDecisionComponent::ChooseDirection()
            ValidDirections.Num());
 
     MovementComponent->SetDirection(ChosenDirection);
+    return true;
 }

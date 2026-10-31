@@ -34,15 +34,25 @@ void UPacGridMovementComponent::TickComponent(
 
         return;
     }
+    // Spend this frame's whole movement budget. When a tile is reached with
+    // distance left over, start the next tile right away instead of dropping
+    // the leftover and waiting for the next frame (that caused a speed hitch
+    // at every tile).
+    float RemainingDistance = MovementSpeed * DeltaTime;
 
-    if (CurrentGridPosition == TargetGridPosition)
-    {
-        TryStartMovement();
-    }
+    // Safety cap so a huge DeltaTime (hitch, breakpoint) cannot loop for long.
+    constexpr int32 MaxTilesPerFrame = 4;
 
-    if (CurrentGridPosition != TargetGridPosition)
+    for (int32 Step = 0;
+         Step < MaxTilesPerFrame && RemainingDistance > KINDA_SMALL_NUMBER;
+         ++Step)
     {
-        MoveTowardTarget(DeltaTime);
+        if (CurrentGridPosition == TargetGridPosition && !TryStartMovement())
+        {
+            break;  // Blocked or no input: stand still, drop the budget.
+        }
+
+        RemainingDistance = MoveTowardTarget(RemainingDistance);
     }
 }
 
@@ -189,7 +199,7 @@ bool UPacGridMovementComponent::TryStartMovement()
     return true;
 }
 
-void UPacGridMovementComponent::MoveTowardTarget(float const DeltaTime)
+float UPacGridMovementComponent::MoveTowardTarget(float const MaxDistance)
 {
     check(Maze);
     check(UpdatedComponent);
@@ -202,29 +212,18 @@ void UPacGridMovementComponent::MoveTowardTarget(float const DeltaTime)
 
     float const DistanceToTarget = ToTarget.Size();
 
-    if (DistanceToTarget <= KINDA_SMALL_NUMBER)
+    if (DistanceToTarget <= KINDA_SMALL_NUMBER || MaxDistance >= DistanceToTarget)
     {
+        // Arrive exactly on the tile centre and hand back what is left.
         UpdatedComponent->SetWorldLocation(TargetWorldPosition);
 
         CurrentGridPosition = TargetGridPosition;
         OnGridPositionChanged.Broadcast(CurrentGridPosition);
 
-        return;
+        return FMath::Max(MaxDistance - DistanceToTarget, 0.0f);
     }
 
-    float const DistanceThisFrame = MovementSpeed * DeltaTime;
-
-    if (DistanceThisFrame >= DistanceToTarget)
-    {
-        UpdatedComponent->SetWorldLocation(TargetWorldPosition);
-
-        CurrentGridPosition = TargetGridPosition;
-        OnGridPositionChanged.Broadcast(CurrentGridPosition);
-
-        return;
-    }
-
-    FVector const MovementDelta = ToTarget.GetSafeNormal() * DistanceThisFrame;
+    FVector const MovementDelta = ToTarget.GetSafeNormal() * MaxDistance;
 
     FHitResult Hit;
 
@@ -233,6 +232,7 @@ void UPacGridMovementComponent::MoveTowardTarget(float const DeltaTime)
                              false,
                              Hit,
                              ETeleportType::None);
+    return 0.0f;
 }
 
 void UPacGridMovementComponent::InitializeMaze(APacMaze* InMaze)

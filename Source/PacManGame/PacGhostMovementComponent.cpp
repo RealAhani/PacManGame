@@ -25,15 +25,24 @@ void UPacGhostMovementComponent::TickComponent(
     {
         return;
     }
+    // Spend this frame's whole movement budget, carrying leftover distance
+    // into the next tile. A ghost that arrives and decides a new direction
+    // (via OnGridPositionChanged) starts moving in the same frame.
+    float RemainingDistance = MovementSpeed * DeltaTime;
 
-    if (CurrentGridPosition == TargetGridPosition)
-    {
-        TryStartMovement();
-    }
+    // Safety cap so a huge DeltaTime (hitch, breakpoint) cannot loop for long.
+    constexpr int32 MaxTilesPerFrame = 4;
 
-    if (CurrentGridPosition != TargetGridPosition)
+    for (int32 Step = 0;
+         Step < MaxTilesPerFrame && RemainingDistance > KINDA_SMALL_NUMBER;
+         ++Step)
     {
-        MoveTowardTarget(DeltaTime);
+        if (CurrentGridPosition == TargetGridPosition && !TryStartMovement())
+        {
+            break;  // No usable direction: stand still, drop the budget.
+        }
+
+        RemainingDistance = MoveTowardTarget(RemainingDistance);
     }
 }
 
@@ -44,7 +53,7 @@ void UPacGhostMovementComponent::SetDirection(EPacDirection const Direction)
            TEXT("PAC: Ghost SetDirection = %s"),
            *UEnum::GetValueAsString(Direction));
 
-    CurrentDirection = Direction;
+    NextDirection = Direction;
 }
 
 FPacGridPosition UPacGhostMovementComponent::GetCurrentGridPosition() const
@@ -52,9 +61,9 @@ FPacGridPosition UPacGhostMovementComponent::GetCurrentGridPosition() const
     return CurrentGridPosition;
 }
 
-EPacDirection UPacGhostMovementComponent::GetCurrentDirection() const
+EPacDirection UPacGhostMovementComponent::GetTravelDirection() const
 {
-    return CurrentDirection;
+    return TravelDirection;
 }
 
 void UPacGhostMovementComponent::InitializeMaze(APacMaze* InMaze,
@@ -68,7 +77,8 @@ void UPacGhostMovementComponent::InitializeMaze(APacMaze* InMaze,
 
     CurrentGridPosition = StartPosition;
     TargetGridPosition  = StartPosition;
-    CurrentDirection    = EPacDirection::None;
+    TravelDirection     = EPacDirection::None;
+    NextDirection       = EPacDirection::None;
 
     APawn* OwnerPawn = GetPawnOwner();
     check(OwnerPawn);
@@ -83,16 +93,16 @@ bool UPacGhostMovementComponent::TryStartMovement()
            TEXT("PAC: Ghost TryStartMovement.Position=(%d,%d),Direction=%d"),
            CurrentGridPosition.X,
            CurrentGridPosition.Y,
-           static_cast<uint8>(CurrentDirection));
+           static_cast<uint8>(NextDirection));
 
-    if (CurrentDirection == EPacDirection::None)
+    if (NextDirection == EPacDirection::None)
     {
         return false;
     }
 
     FPacGridPosition NextPosition;
 
-    if (!Maze->TryGetNeighbor(CurrentGridPosition, CurrentDirection, NextPosition))
+    if (!Maze->TryGetNeighbor(CurrentGridPosition, NextDirection, NextPosition))
     {
         return false;
     }
@@ -108,12 +118,15 @@ bool UPacGhostMovementComponent::TryStartMovement()
            NextPosition.X,
            NextPosition.Y);
 
+    // The move starts here, so this is the only place the travel direction
+    // changes. Decisions made mid-move cannot corrupt it.
+    TravelDirection    = NextDirection;
     TargetGridPosition = NextPosition;
 
     return true;
 }
 
-void UPacGhostMovementComponent::MoveTowardTarget(float const DeltaTime)
+float UPacGhostMovementComponent::MoveTowardTarget(float const MaxDistance)
 {
     check(Maze);
     check(UpdatedComponent);
@@ -126,29 +139,19 @@ void UPacGhostMovementComponent::MoveTowardTarget(float const DeltaTime)
 
     float const DistanceToTarget = ToTarget.Size();
 
-    if (DistanceToTarget <= KINDA_SMALL_NUMBER)
+
+    if (DistanceToTarget <= KINDA_SMALL_NUMBER || MaxDistance >= DistanceToTarget)
     {
+        // Array exactly on the tile centre and hand back what is left.
         UpdatedComponent->SetWorldLocation(TargetWorldPosition);
 
         CurrentGridPosition = TargetGridPosition;
         OnGridPositionChanged.Broadcast(CurrentGridPosition);
 
-        return;
+        return FMath::Max(MaxDistance - DistanceToTarget, 0.0f);
     }
 
-    float const DistanceThisFrame = MovementSpeed * DeltaTime;
-
-    if (DistanceThisFrame >= DistanceToTarget)
-    {
-        UpdatedComponent->SetWorldLocation(TargetWorldPosition);
-
-        CurrentGridPosition = TargetGridPosition;
-        OnGridPositionChanged.Broadcast(CurrentGridPosition);
-
-        return;
-    }
-
-    FVector const MovementDelta = ToTarget.GetSafeNormal() * DistanceThisFrame;
+    FVector const MovementDelta = ToTarget.GetSafeNormal() * MaxDistance;
 
     FHitResult Hit;
 
@@ -157,4 +160,5 @@ void UPacGhostMovementComponent::MoveTowardTarget(float const DeltaTime)
                              false,
                              Hit,
                              ETeleportType::None);
+    return 0.0f;
 }

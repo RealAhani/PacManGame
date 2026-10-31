@@ -24,7 +24,11 @@ public:
     void InitializeMaze(APacMaze* InMaze, FPacGridPosition const & StartPosition);
     void             SetDirection(EPacDirection Direction);
     FPacGridPosition GetCurrentGridPosition() const;
-    EPacDirection    GetCurrentDirection() const;
+    EPacDirection    GetTravelDirection() const;
+    bool             IsMoving() const
+    {
+        return CurrentGridPosition != TargetGridPosition;
+    }
 
 
     FOnGhostGridPositionChanged OnGridPositionChanged;
@@ -38,7 +42,10 @@ protected:
 private:
 
     bool TryStartMovement();
-    void MoveTowardTarget(float DeltaTime);
+    // Moves up to MaxDistance toward the target tile. Returns the distance
+    // that was NOT used (greater than zero only if the target was reached),
+    // so the caller can carry it into the next tile.
+    float MoveTowardTarget(float MaxDistance);
 
     UPROPERTY(EditInstanceOnly, Category = "Grid Movement")
     TObjectPtr<APacMaze> Maze;
@@ -50,7 +57,10 @@ private:
     FPacGridPosition TargetGridPosition;
 
     UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
-    EPacDirection CurrentDirection = EPacDirection::None;
+    EPacDirection TravelDirection = EPacDirection::None;
+
+    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    EPacDirection NextDirection = EPacDirection::None;
 
     UPROPERTY(EditDefaultsOnly, Category = "Grid Movement", meta = (ClampMin = "0.0"))
     float MovementSpeed = 250.0f;

@@ -58,6 +58,9 @@ private:
     bool ChooseDirectionTowardTarget(FPacGridPosition const & TargetPosition);
     bool TryResolveWalkableTarget(FPacGridPosition const & DesiredTarget,
                                   FPacGridPosition &       OutTarget) const;
+    // Picks a random open direction, never reversing unless at a dead end.
+    // Used for wandering modes and when the ghost is standing on its target.
+    bool ChooseRandomDirection();
     bool IsDirectionWalkable(FPacGridPosition const & Position,
                              EPacDirection            Direction) const;
     void HandlePlayerGridPositionChanged(

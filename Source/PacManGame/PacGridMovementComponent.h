@@ -49,7 +49,10 @@ private:
 
     // -------------------- functions --------------------
     bool TryStartMovement();
-    void MoveTowardTarget(float DeltaTime);
+    // Moves up to MaxDistance toward the target tile. Returns the distance
+    // that was NOT used (greater than zero only if the target was reached),
+    // so the caller can carry it into the next tile.
+    float MoveTowardTarget(float MaxDistance);
 
     // -------------------- properties --------------------
     UPROPERTY(EditInstanceOnly, Category = "Grid Movement")
