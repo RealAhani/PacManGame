@@ -97,6 +97,11 @@ void UPacGhostDecisionComponent::HandlePlayerGridPositionChanged(
 
 void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPosition)
 {
+    if (Maze == nullptr)
+    {
+        UE_LOG(LogTemp, Error, TEXT("PAC: Maze is null"));
+        return;
+    }
     if (!Maze->IsWalkable(TargetPosition))
     {
         UE_LOG(LogTemp,
@@ -104,11 +109,6 @@ void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPositio
                TEXT("PAC: Invalid Scatter target (%d,%d)."),
                TargetPosition.X,
                TargetPosition.Y);
-        return;
-    }
-    if (Maze == nullptr)
-    {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Maze is null"));
         return;
     }
 

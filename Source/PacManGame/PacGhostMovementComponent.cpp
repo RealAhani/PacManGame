@@ -3,6 +3,8 @@
 // clang-format off
 #include "PacGhostMovementComponent.h"
 #include "PacMaze.h"
+
+#include "Logging/PacManLog.h"
 // clang-format on
 
 UPacGhostMovementComponent::UPacGhostMovementComponent()
@@ -37,10 +39,10 @@ void UPacGhostMovementComponent::TickComponent(
 
 void UPacGhostMovementComponent::SetDirection(EPacDirection const Direction)
 {
-    // UE_LOG(LogTemp,
-    //        Warning,
-    //        TEXT("PAC: Ghost SetDirection = %d"),
-    //        static_cast<uint8>(Direction));
+    UE_LOG(LogPacMan,
+           Verbose,
+           TEXT("PAC: Ghost SetDirection = %s"),
+           *UEnum::GetValueAsString(Direction));
 
     CurrentDirection = Direction;
 }
@@ -76,12 +78,12 @@ void UPacGhostMovementComponent::InitializeMaze(APacMaze* InMaze,
 
 bool UPacGhostMovementComponent::TryStartMovement()
 {
-    // UE_LOG(LogTemp,
-    //        Warning,
-    //        TEXT("PAC: Ghost TryStartMovement.
-    //        Position=(%d,%d),Direction=%d"), CurrentGridPosition.X,
-    //        CurrentGridPosition.Y,
-    //        static_cast<uint8>(CurrentDirection));
+    UE_LOG(LogPacMan,
+           Verbose,
+           TEXT("PAC: Ghost TryStartMovement.Position=(%d,%d),Direction=%d"),
+           CurrentGridPosition.X,
+           CurrentGridPosition.Y,
+           static_cast<uint8>(CurrentDirection));
 
     if (CurrentDirection == EPacDirection::None)
     {
@@ -100,11 +102,11 @@ bool UPacGhostMovementComponent::TryStartMovement()
         return false;
     }
 
-    // UE_LOG(LogTemp,
-    //        Warning,
-    //        TEXT("PAC: Ghost starting movement to (%d,%d)."),
-    //        NextPosition.X,
-    //        NextPosition.Y);
+    UE_LOG(LogPacMan,
+           Verbose,
+           TEXT("PAC: Ghost starting movement to (%d,%d)."),
+           NextPosition.X,
+           NextPosition.Y);
 
     TargetGridPosition = NextPosition;
 
