@@ -110,17 +110,17 @@ bool UPacGridMovementComponent::TryStartMovement()
 
             bMovementBlocked = false;
 
-            UE_LOG(LogTemp,
-                   Warning,
-                   TEXT("PAC: Requested direction accepted. "
-                        "Current=(%d,%d), Target=(%d,%d), Direction=%d, "
-                        "Remaining=%d"),
-                   CurrentGridPosition.X,
-                   CurrentGridPosition.Y,
-                   TargetGridPosition.X,
-                   TargetGridPosition.Y,
-                   static_cast<uint8>(CurrentDirection),
-                   InputQueue.Num());
+            // UE_LOG(LogTemp,
+            //        Warning,
+            //        TEXT("PAC: Requested direction accepted. "
+            //             "Current=(%d,%d), Target=(%d,%d), Direction=%d, "
+            //             "Remaining=%d"),
+            //        CurrentGridPosition.X,
+            //        CurrentGridPosition.Y,
+            //        TargetGridPosition.X,
+            //        TargetGridPosition.Y,
+            //        static_cast<uint8>(CurrentDirection),
+            //        InputQueue.Num());
 
             return true;
         }
@@ -132,11 +132,11 @@ bool UPacGridMovementComponent::TryStartMovement()
         // Do NOT set bMovementBlocked.
         //
         // We continue below and try CurrentDirection.
-        UE_LOG(LogTemp,
-               Warning,
-               TEXT("PAC: Requested direction blocked for now. "
-                    "Keeping it in queue. Direction=%d"),
-               static_cast<uint8>(RequestedDirection));
+        // UE_LOG(LogTemp,
+        //        Warning,
+        //        TEXT("PAC: Requested direction blocked for now. "
+        //             "Keeping it in queue. Direction=%d"),
+        //        static_cast<uint8>(RequestedDirection));
     }
 
     // -------------------------------------------------
@@ -158,10 +158,10 @@ bool UPacGridMovementComponent::TryStartMovement()
 
         bMovementBlocked = true;
 
-        UE_LOG(LogTemp,
-               Warning,
-               TEXT("PAC: Current direction has no neighbor. "
-                    "Pac-Man is stopped."));
+        // UE_LOG(LogTemp,
+        //        Warning,
+        //        TEXT("PAC: Current direction has no neighbor. "
+        //             "Pac-Man is stopped."));
 
         return false;
     }
@@ -171,12 +171,12 @@ bool UPacGridMovementComponent::TryStartMovement()
 
         bMovementBlocked = true;
 
-        UE_LOG(LogTemp,
-               Warning,
-               TEXT("PAC: Current direction is blocked. "
-                    "Pac-Man is stopped at (%d,%d)."),
-               CurrentGridPosition.X,
-               CurrentGridPosition.Y);
+        // UE_LOG(LogTemp,
+        //        Warning,
+        //        TEXT("PAC: Current direction is blocked. "
+        //             "Pac-Man is stopped at (%d,%d)."),
+        //        CurrentGridPosition.X,
+        //        CurrentGridPosition.Y);
 
         return false;
     }

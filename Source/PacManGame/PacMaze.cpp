@@ -222,19 +222,22 @@ void APacMaze::BuildRuntimeGrid()
 {
     TArray<FString> Rows;
 
-    check(GetLayoutRows(Rows));
-
-    int32 const TileCount = GridSize.X * GridSize.Y;
-
-    Tiles.Init(EPacTileType::Empty, TileCount);
-
-    for (int32 Y = 0; Y < GridSize.Y; ++Y)
+    if (GetLayoutRows(Rows))
     {
-        for (int32 X = 0; X < GridSize.X; ++X)
+        check(Rows.Num());
+
+        int32 const TileCount = GridSize.X * GridSize.Y;
+
+        Tiles.Init(EPacTileType::Empty, TileCount);
+
+        for (int32 Y = 0; Y < GridSize.Y; ++Y)
         {
-            const TCHAR Character = Rows[Y][X];
-            int32 const Index     = Y * GridSize.X + X;
-            Tiles[Index]          = ParseTileCharacter(Character);
+            for (int32 X = 0; X < GridSize.X; ++X)
+            {
+                const TCHAR Character = Rows[Y][X];
+                int32 const Index     = Y * GridSize.X + X;
+                Tiles[Index]          = ParseTileCharacter(Character);
+            }
         }
     }
 }
@@ -252,7 +255,7 @@ bool APacMaze::GetLayoutRows(TArray<FString> & OutRows) const
 
     NormalizedLayout.ParseIntoArray(OutRows, TEXT("\n"), false);
 
-    return OutRows.Num() > 0;
+    return (OutRows.Num() > 0);
 }
 
 EPacTileType APacMaze::ParseTileCharacter(const TCHAR Character) const

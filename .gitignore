@@ -80,3 +80,6 @@ Content/Map/*
 
 # Source-Dive 
 .sourcedive/*
+
+#common files 
+compile_commands.json
