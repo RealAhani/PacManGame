@@ -23,8 +23,10 @@ APacPelletManager::APacPelletManager()
     PowerPelletInstances->SetupAttachment(RootComponent);
 
     NormalPelletInstances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    NormalPelletInstances->SetCastShadow(true);
 
     PowerPelletInstances->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    PowerPelletInstances->SetCastShadow(true);
 }
 
 
@@ -40,8 +42,7 @@ void APacPelletManager::Initialize(APacMaze* InMaze)
 void APacPelletManager::SpawnPellets()
 {
     check(Maze);
-    // this->SetActorLocationAndRotation(Maze->GetActorLocation() - Maze->WallExtent,
-    //                                   Maze->GetActorRotation());
+
     if (NormalPelletInstances->GetStaticMesh() == nullptr ||
         PowerPelletInstances->GetStaticMesh() == nullptr)
     {
