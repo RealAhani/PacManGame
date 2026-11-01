@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacPlayerController.h"
+#include "Logging/PacManLog.h"
 #include "PacPlayerPawn.h"
 #include "PacGameMode.h"
 #include "PacMaze.h"
@@ -140,7 +141,7 @@ void APacPlayerController::SubmitDirection(EPacDirection const Direction)
 
     PlayerPawn->SetDesiredDirection(Direction);
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Log,
            TEXT("PAC: Direction submitted: %d"),
            static_cast<uint8>(Direction));
@@ -172,7 +173,7 @@ void APacPlayerController::HandlePelletConsumed(int32 const ScoreValue)
 
     if (PacPlayerState == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
         return;
     }
 

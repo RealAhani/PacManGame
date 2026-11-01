@@ -2,9 +2,9 @@
 // clang-format off
 #include "PacGhostDecisionComponent.h"
 #include "PacGridMovementComponent.h"
-
 #include "PacGhostMovementComponent.h"
 #include "PacMaze.h"
+#include "Logging/PacManLog.h"
 // clang-format on
 
 // helper function
@@ -91,7 +91,7 @@ void UPacGhostDecisionComponent::HandlePlayerGridPositionChanged(
 {
     //    While the ghost is between tiles, the decision is made on arrival
     // (HandleGridPositionChanged) using the latest player position, so
-    // deciding now would only be thrown away. Only re-decide a ghost th
+    // deciding now would only be thrown away. Only re-decide a ghost that
     // is standing still.
     if (BehaviorMode == EPacGhostBehaviorMode::Chase &&
         MovementComponent != nullptr && !MovementComponent->IsMoving())
@@ -104,12 +104,12 @@ void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPositio
 {
     if (Maze == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Maze is null"));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: Maze is null"));
         return;
     }
     if (!Maze->IsWalkable(TargetPosition))
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("PAC: Invalid Scatter target (%d,%d)."),
                TargetPosition.X,
@@ -120,8 +120,8 @@ void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPositio
     ScatterTargetPosition = TargetPosition;
     bHasScatterTarget     = true;
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Log,
            TEXT("PAC: Scatter target set to (%d,%d)."),
            TargetPosition.X,
            TargetPosition.Y);
@@ -149,7 +149,7 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
 
     BehaviorMode = NewMode;
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Warning,
            TEXT("PAC: Ghost behavior mode changed to %s"),
            *UEnum::GetValueAsString(BehaviorMode));
@@ -165,11 +165,10 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
 
 void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonality)
 {
-    // The ghost just arrived on a tile: this is the real decision point.
     Personality = NewPersonality;
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Log,
            TEXT("PAC: Ghost personality set to %s"),
            *UEnum::GetValueAsString(Personality));
 }
@@ -177,6 +176,7 @@ void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonal
 void UPacGhostDecisionComponent::HandleGridPositionChanged(
     [[maybe_unused]] FPacGridPosition const & Position)
 {
+    // The ghost just arrived on a tile: this is the real decision point.
     ChooseDirection();
     // A pending "reverse after mode switch" permission is used up once.
     bAllowReverseOnNextDecision = false;
@@ -214,7 +214,7 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
 
     if (!Grid.FindNearestWalkable(TargetPosition, ResolvedTargetPosition))
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Could not resolve a walkable target."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: Could not resolve a walkable target."));
 
         return false;
     }
@@ -250,7 +250,7 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
         return true;
     }
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Warning,
            TEXT("PAC: No path from (%d,%d) to target (%d,%d)."),
            StartPosition.X,
@@ -271,7 +271,7 @@ void UPacGhostDecisionComponent::ChooseDirection()
     {
         if (PlayerMovementComponent == nullptr)
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("PAC: Chase mode has no PlayerMovementComponent."));
             return;
@@ -377,8 +377,8 @@ bool UPacGhostDecisionComponent::ChooseRandomDirection()
 
     FPacGridPosition const CurrentPosition = MovementComponent->GetCurrentGridPosition();
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Verbose,
            TEXT("PAC: Ghost ChooseDirection at (%d,%d)"),
            CurrentPosition.X,
            CurrentPosition.Y);
@@ -421,8 +421,8 @@ bool UPacGhostDecisionComponent::ChooseRandomDirection()
     int32 const RandomIndex = FMath::RandRange(0, ValidDirections.Num() - 1);
     EPacDirection const ChosenDirection = ValidDirections[RandomIndex];
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Verbose,
            TEXT("PAC: Ghost chose direction %d from %d valid directions."),
            static_cast<uint8>(ChosenDirection),
            ValidDirections.Num());

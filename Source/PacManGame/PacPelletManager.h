@@ -47,10 +47,10 @@ private:
 
     // -------------------- properties --------------------
 
-    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+    UPROPERTY(VisibleAnywhere, Category = "Pellets")
     TObjectPtr<UInstancedStaticMeshComponent> NormalPelletInstances;
 
-    UPROPERTY(EditDefaultsOnly, Category = "Pellets")
+    UPROPERTY(VisibleAnywhere, Category = "Pellets")
     TObjectPtr<UInstancedStaticMeshComponent> PowerPelletInstances;
 
     UPROPERTY(EditDefaultsOnly, Category = "Pellets", meta = (ClampMin = "0"))

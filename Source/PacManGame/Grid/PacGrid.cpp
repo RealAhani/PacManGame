@@ -1,4 +1,3 @@
-#pragma once
 // clang-format off
 #include "PacGrid.h"
 // clang-format on

@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacMaze.h"
+#include "Logging/PacManLog.h"
 
 #include "DrawDebugHelpers.h"
 #include "Components/SceneComponent.h"
@@ -69,8 +70,7 @@ void APacMaze::InitializeRuntime()
 
     if (!FPacGrid::TryParse(MazeData->Layout, MazeData->GridSize, Grid, ParseError))
     {
-        UE_LOG(LogTemp, Error, TEXT("Maze '%s': %s"), *MazeData->GetName(), *ParseError);
-
+        UE_LOG(LogPacMan, Error, TEXT("Maze '%s': %s"), *MazeData->GetName(), *ParseError);
 
         return;
     }
@@ -87,7 +87,7 @@ void APacMaze::InitializeRuntime()
 
     bRuntimeInitialized = true;
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Warning,
            TEXT("PAC: Maze initialized. Size=(%d,%d), Data=%s"),
            GridSize.X,
@@ -101,7 +101,7 @@ bool APacMaze::ValidateStartPositions() const
 
     if (!Grid.IsValidPosition(PlayerStart))
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("Maze '%s' has an invalid PlayerStart at (%d, %d)."),
                *MazeData->GetName(),
@@ -117,7 +117,7 @@ bool APacMaze::ValidateStartPositions() const
 
         if (!Grid.IsValidPosition(GhostStart))
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("Maze '%s' has invalid GhostStart[%d] at (%d, %d)."),
                    *MazeData->GetName(),
@@ -130,7 +130,7 @@ bool APacMaze::ValidateStartPositions() const
 
         if (!Grid.IsWalkable(GhostStart))
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("Maze '%s' has GhostStart[%d] at (%d, %d), "
                         "but that cell is a wall."),
@@ -145,7 +145,7 @@ bool APacMaze::ValidateStartPositions() const
 
     if (!Grid.IsWalkable(PlayerStart))
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("Maze '%s' has PlayerStart at (%d, %d), but that cell is a "
                     "wall."),

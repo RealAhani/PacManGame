@@ -1,5 +1,6 @@
 // clang-format off
 #include "PacGhostAIController.h"
+#include "Logging/PacManLog.h"
 
 #include "Components/StateTreeAIComponent.h"
 // clang-format on
@@ -16,14 +17,14 @@ void APacGhostAIController::StartStateTree()
 {
     if (StateTreeAIComponent == nullptr)
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("PAC: Cannot start StateTree. StateTreeAIComponent is "
                     "null."));
         return;
     }
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Error,
            TEXT("PAC: Controller=%s | Controlled Pawn=%s"),
            *GetName(),
@@ -31,5 +32,5 @@ void APacGhostAIController::StartStateTree()
 
     StateTreeAIComponent->StartLogic();
 
-    UE_LOG(LogTemp, Log, TEXT("PAC: Ghost StateTree started."));
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Ghost StateTree started."));
 }

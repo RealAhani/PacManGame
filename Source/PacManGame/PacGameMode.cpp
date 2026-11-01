@@ -6,6 +6,7 @@
 #include "PacPelletManager.h"
 #include "PacPlayerState.h"
 #include "PacGhostManager.h"
+#include "Logging/PacManLog.h"
 
 #include "Kismet/GameplayStatics.h"
 // clang-format on
@@ -31,8 +32,8 @@ void APacGameMode::BeginPlay()
     check(PelletManager);
 
     PelletManager->Initialize(Maze);
+    UE_LOG(LogPacMan, Log, TEXT("PAC: GameMode found maze '%s'."), *Maze->GetName());
 
-    UE_LOG(LogTemp, Warning, TEXT("PAC: GameMode found maze '%s'."), *Maze->GetName());
 
     PelletManager->OnAllPelletsConsumed
         .AddUObject(this, &APacGameMode::HandleAllPelletsConsumed);
@@ -45,7 +46,7 @@ void APacGameMode::BeginPlay()
 
     GhostManager->Initialize(Maze);
 
-    UE_LOG(LogTemp, Warning, TEXT("PAC: GhostManager initialized."));
+    UE_LOG(LogPacMan, Log, TEXT("PAC: GhostManager initialized."));
 }
 
 APacMaze* APacGameMode::GetMaze()
@@ -60,7 +61,7 @@ APacPelletManager* APacGameMode::GetPelletManager() const
 
 void APacGameMode::HandleAllPelletsConsumed()
 {
-    UE_LOG(LogTemp, Warning, TEXT("PAC: All pellets consumed. Level complete."));
+    UE_LOG(LogPacMan, Log, TEXT("PAC: All pellets consumed. Level complete."));
 }
 
 APacGhostManager* APacGameMode::GetGhostManager() const

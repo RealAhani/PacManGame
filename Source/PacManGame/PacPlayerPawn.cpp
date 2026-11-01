@@ -10,10 +10,9 @@
 
 APacPlayerPawn::APacPlayerPawn()
 {
-    PrimaryActorTick.bCanEverTick          = true;
-    PrimaryActorTick.bStartWithTickEnabled = false;
-
-    CollisionComponent = CreateDefaultSubobject<USphereComponent>(
+    // The pawn has no Tick(); movement ticks inside the movement component.
+    PrimaryActorTick.bCanEverTick = false;
+    CollisionComponent            = CreateDefaultSubobject<USphereComponent>(
         TEXT("CollisionComponent"));
 
     SetRootComponent(CollisionComponent);

@@ -1,7 +1,7 @@
 
 // clang-format off
 #include "PacGhostSetBehaviorModeTask.h"
-
+#include "Logging/PacManLog.h"
 #include "PacGhostDecisionComponent.h"
 #include "PacGhostPawn.h"
 #include "StateTreeExecutionContext.h"
@@ -16,7 +16,7 @@ EStateTreeRunStatus FPacGhostSetBehaviorModeTask::EnterState(
 
     if (!IsValid(InstanceData.GhostPawn))
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: SetBehaviorMode task has no GhostPawn."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: SetBehaviorMode task has no GhostPawn."));
 
         return EStateTreeRunStatus::Failed;
     }
@@ -26,7 +26,7 @@ EStateTreeRunStatus FPacGhostSetBehaviorModeTask::EnterState(
 
     if (!IsValid(DecisionComponent))
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Ghost has no DecisionComponent."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: Ghost has no DecisionComponent."));
 
         return EStateTreeRunStatus::Failed;
     }

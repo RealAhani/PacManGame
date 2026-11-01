@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacPelletManager.h"
+#include "Logging/PacManLog.h"
 #include "PacMaze.h"
 #include "PacGridMovementComponent.h"
 
@@ -46,7 +47,7 @@ void APacPelletManager::SpawnPellets()
     if (NormalPelletInstances->GetStaticMesh() == nullptr ||
         PowerPelletInstances->GetStaticMesh() == nullptr)
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("PAC: PelletManager is missing an ISM static mesh."));
         return;
@@ -108,7 +109,7 @@ void APacPelletManager::SpawnPellets()
         }
     }
 
-    UE_LOG(LogTemp, Log, TEXT("PAC: Created %d pellet instances."), Pellets.Num());
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Created %d pellet instances."), Pellets.Num());
 }
 
 void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const & Position)
@@ -128,7 +129,7 @@ void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const &
 
     if (!IsValid(Instances) || !Instances->IsValidInstance(PelletData.InstanceIndex))
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Warning,
                TEXT("PAC: Invalid pellet instance at (%d,%d)."),
                Position.X,
@@ -162,7 +163,7 @@ void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const &
         OnAllPelletsConsumed.Broadcast();
     }
 
-    UE_LOG(LogTemp,
+    UE_LOG(LogPacMan,
            Log,
            TEXT("PAC: Pellet consumed at (%d,%d). Value=%d, Remaining=%d"),
            Position.X,

@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacGridMovementComponent.h"
+#include "Logging/PacManLog.h"
 #include "PacMaze.h"
 // clang-format on
 
@@ -21,17 +22,10 @@ void UPacGridMovementComponent::TickComponent(
 
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+    // Not initialised yet (InitializeMaze() has not run). That is a normal
+    // state for the first frames, so stay silent instead of spamming per tick.
     if (Maze == nullptr || UpdatedComponent == nullptr)
     {
-        if (Maze == nullptr)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("PAC: maze is null"));
-        }
-        if (UpdatedComponent == nullptr)
-        {
-            UE_LOG(LogTemp, Warning, TEXT("PAC: updated component is null"));
-        }
-
         return;
     }
     // Spend this frame's whole movement budget. When a tile is reached with
@@ -74,8 +68,8 @@ void UPacGridMovementComponent::SetDesiredDirection(EPacDirection const Directio
 
     InputQueue.Add(Direction);
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Verbose,
            TEXT("PAC: Input received. Direction=%d, QueueSize=%d"),
            static_cast<uint8>(Direction),
            InputQueue.Num());
@@ -120,18 +114,6 @@ bool UPacGridMovementComponent::TryStartMovement()
 
             bMovementBlocked = false;
 
-            // UE_LOG(LogTemp,
-            //        Warning,
-            //        TEXT("PAC: Requested direction accepted. "
-            //             "Current=(%d,%d), Target=(%d,%d), Direction=%d, "
-            //             "Remaining=%d"),
-            //        CurrentGridPosition.X,
-            //        CurrentGridPosition.Y,
-            //        TargetGridPosition.X,
-            //        TargetGridPosition.Y,
-            //        static_cast<uint8>(CurrentDirection),
-            //        InputQueue.Num());
-
             return true;
         }
 
@@ -142,11 +124,6 @@ bool UPacGridMovementComponent::TryStartMovement()
         // Do NOT set bMovementBlocked.
         //
         // We continue below and try CurrentDirection.
-        // UE_LOG(LogTemp,
-        //        Warning,
-        //        TEXT("PAC: Requested direction blocked for now. "
-        //             "Keeping it in queue. Direction=%d"),
-        //        static_cast<uint8>(RequestedDirection));
     }
 
     // -------------------------------------------------
@@ -168,10 +145,6 @@ bool UPacGridMovementComponent::TryStartMovement()
 
         bMovementBlocked = true;
 
-        // UE_LOG(LogTemp,
-        //        Warning,
-        //        TEXT("PAC: Current direction has no neighbor. "
-        //             "Pac-Man is stopped."));
 
         return false;
     }
@@ -180,13 +153,6 @@ bool UPacGridMovementComponent::TryStartMovement()
     {
 
         bMovementBlocked = true;
-
-        // UE_LOG(LogTemp,
-        //        Warning,
-        //        TEXT("PAC: Current direction is blocked. "
-        //             "Pac-Man is stopped at (%d,%d)."),
-        //        CurrentGridPosition.X,
-        //        CurrentGridPosition.Y);
 
         return false;
     }
@@ -258,8 +224,8 @@ void UPacGridMovementComponent::InitializeMaze(APacMaze* InMaze)
 
     // SetComponentTickEnabled(true);
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Log,
            TEXT("PAC: Movement initialized. "
                 "Grid=(%d,%d), Tick=%s, Maze=%s"),
            CurrentGridPosition.X,

@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacHUD.h"
+#include "Logging/PacManLog.h"
 #include "PacHUDWidget.h"
 #include "PacPlayerState.h"
 #include "GameFramework/PlayerController.h"
@@ -15,7 +16,7 @@ void APacHUD::BeginPlay()
 
     if (HUDWidgetClass == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: HUDWidgetClass is not assigned."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: HUDWidgetClass is not assigned."));
         return;
     }
 
@@ -23,7 +24,7 @@ void APacHUD::BeginPlay()
 
     if (HUDWidget == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: Failed to create HUD widget."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: Failed to create HUD widget."));
         return;
     }
 
@@ -33,7 +34,7 @@ void APacHUD::BeginPlay()
 
     if (PlayerController == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: HUD has no owning PlayerController."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: HUD has no owning PlayerController."));
         return;
     }
 
@@ -42,12 +43,12 @@ void APacHUD::BeginPlay()
 
     if (PacPlayerState == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: HUD could not find APacPlayerState."));
+        UE_LOG(LogPacMan, Error, TEXT("PAC: HUD could not find APacPlayerState."));
         return;
     }
 
     // Set the initial value.
-    HUDWidget->SetScore(PacPlayerState->GetScore());
+    HUDWidget->SetScore(PacPlayerState->GetCurrentScore());
 
     // Listen for future changes.
     PacPlayerState->OnScoreChanged.AddUObject(this, &APacHUD::HandleScoreChanged);

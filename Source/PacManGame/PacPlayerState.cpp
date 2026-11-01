@@ -1,16 +1,17 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PacPlayerState.h"
+#include "Logging/PacManLog.h"
 
-int32 APacPlayerState::GetScore() const
+int32 APacPlayerState::GetCurrentScore() const
 {
-    return Current_Score;
+    return CurrentScore;
 }
 
 void APacPlayerState::AddScore(int32 const Amount)
 {
-    Current_Score += Amount;
+    CurrentScore += Amount;
 
-    UE_LOG(LogTemp, Log, TEXT("PAC: Score changed. Score=%d"), Current_Score);
-    OnScoreChanged.Broadcast(Current_Score);
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Score changed. Score=%d"), CurrentScore);
+    OnScoreChanged.Broadcast(CurrentScore);
 }

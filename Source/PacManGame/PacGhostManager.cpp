@@ -2,6 +2,7 @@
 
 // clang-format off
 #include "PacGhostManager.h"
+#include "Logging/PacManLog.h"
 #include "PacGhostDecisionComponent.h"
 #include "PacGhostMovementComponent.h"
 #include "PacGhostAIController.h"
@@ -33,7 +34,9 @@ void APacGhostManager::SpawnGhosts()
 
     if (GhostClass == nullptr)
     {
-        UE_LOG(LogTemp, Error, TEXT("PAC: GhostManager has no GhostClass assigned."));
+        UE_LOG(LogPacMan,
+               Error,
+               TEXT("PAC: GhostManager has no GhostClass assigned."));
         return;
     }
 
@@ -41,7 +44,7 @@ void APacGhostManager::SpawnGhosts()
 
     if (PlayerPawn == nullptr)
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("Pac: GhostManager could not find the player pawn."));
         return;
@@ -51,15 +54,15 @@ void APacGhostManager::SpawnGhosts()
         UPacGridMovementComponent>();
     if (PlayerMovementComponent == nullptr)
     {
-        UE_LOG(LogTemp,
+        UE_LOG(LogPacMan,
                Error,
                TEXT("Pac: Player Pawn '%s' has no PacGridMovementComponent."),
                *GetNameSafe(PlayerPawn));
         return;
     }
 
-    UE_LOG(LogTemp,
-           Warning,
+    UE_LOG(LogPacMan,
+           Log,
            TEXT("Pac: GhostManager found player movement component '%s'."),
            *GetNameSafe(PlayerMovementComponent));
 
@@ -92,7 +95,7 @@ void APacGhostManager::SpawnGhosts()
 
         if (Ghost == nullptr)
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("PAC: Failed to spawn ghost %d at (%d,%d)."),
                    Index,
@@ -106,7 +109,7 @@ void APacGhostManager::SpawnGhosts()
 
         if (MovementComponent == nullptr)
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("PAC: Ghost %d has no movement component."),
                    Index);
@@ -121,7 +124,7 @@ void APacGhostManager::SpawnGhosts()
 
         if (DecisionComponent == nullptr)
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("PAC: Ghost %d has no decision component."),
                    Index);
@@ -149,7 +152,7 @@ void APacGhostManager::SpawnGhosts()
 
         if (!Maze->IsWalkable(ScatterTarget))
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Warning,
                    TEXT("PAC: Scatter target (%d,%d) is blocked; "
                         "using ghost start position instead."),
@@ -167,7 +170,7 @@ void APacGhostManager::SpawnGhosts()
 
         if (AIController == nullptr)
         {
-            UE_LOG(LogTemp,
+            UE_LOG(LogPacMan,
                    Error,
                    TEXT("PAC: Ghost %d has no PacGhostAIController. StateTree "
                         "was not started."),
@@ -180,13 +183,13 @@ void APacGhostManager::SpawnGhosts()
 
         Ghosts.Add(Ghost);
 
-        UE_LOG(LogTemp,
-               Warning,
+        UE_LOG(LogPacMan,
+               Log,
                TEXT("PAC: Ghost %d initialized at (%d,%d)."),
                Index,
                StartPosition.X,
                StartPosition.Y);
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("PAC: Spawned %d ghosts."), Ghosts.Num());
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Spawned %d ghosts."), Ghosts.Num());
 }

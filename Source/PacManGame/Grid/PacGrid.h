@@ -2,7 +2,7 @@
 
 // clang-format off
 #include "CoreMinimal.h"
-#include "..\PacGridTypes.h"
+#include "PacGridTypes.h"
 // clang-format on
 
 /**

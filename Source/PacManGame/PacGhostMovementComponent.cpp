@@ -142,7 +142,7 @@ float UPacGhostMovementComponent::MoveTowardTarget(float const MaxDistance)
 
     if (DistanceToTarget <= KINDA_SMALL_NUMBER || MaxDistance >= DistanceToTarget)
     {
-        // Array exactly on the tile centre and hand back what is left.
+        // Arrive exactly on the tile centre and hand back what is left.
         UpdatedComponent->SetWorldLocation(TargetWorldPosition);
 
         CurrentGridPosition = TargetGridPosition;

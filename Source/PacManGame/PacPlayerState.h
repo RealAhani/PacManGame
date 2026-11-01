@@ -15,7 +15,7 @@ class PACMANGAME_API APacPlayerState : public APlayerState
 public:
 
     // -------------------- functions --------------------
-    int32 GetScore() const;
+    int32 GetCurrentScore() const;
     void  AddScore(int32 Amount);
 
     // -------------------- properties --------------------
@@ -24,5 +24,5 @@ public:
 private:
 
     UPROPERTY(VisibleInstanceOnly, Category = "Score")
-    int32 Current_Score = 0;
+    int32 CurrentScore = 0;
 };
