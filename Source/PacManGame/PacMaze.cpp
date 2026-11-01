@@ -4,7 +4,6 @@
 #include "PacMaze.h"
 
 #include "DrawDebugHelpers.h"
-#include "Kismet/KismetStringLibrary.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
 
@@ -66,14 +65,25 @@ void APacMaze::InitializeRuntime()
         return;
     }
 
-    GridSize = MazeData->GridSize;
+    FString ParseError;
 
-    if (!ValidateMazeData())
+    if (!FPacGrid::TryParse(MazeData->Layout, MazeData->GridSize, Grid, ParseError))
     {
+        UE_LOG(LogTemp, Error, TEXT("Maze '%s': %s"), *MazeData->GetName(), *ParseError);
+
+
         return;
     }
 
-    BuildRuntimeGrid();
+    GridSize = Grid.GetSize();
+
+    if (!ValidateStartPositions())
+    {
+        // Leave the maze in a clean "not initialized" state.
+        Grid     = FPacGrid();
+        GridSize = FIntPoint::ZeroValue;
+        return;
+    }
 
     bRuntimeInitialized = true;
 
@@ -85,80 +95,11 @@ void APacMaze::InitializeRuntime()
            *GetNameSafe(MazeData));
 }
 
-bool APacMaze::ValidateMazeData() const
+bool APacMaze::ValidateStartPositions() const
 {
-    if (GridSize.X <= 0 || GridSize.Y <= 0)
-    {
-        UE_LOG(LogTemp,
-               Error,
-               TEXT("Maze '%s' has an invalid grid size: %d x %d."),
-               *MazeData->GetName(),
-               GridSize.X,
-               GridSize.Y);
-
-        return false;
-    }
-
-    TArray<FString> Rows;
-    if (!GetLayoutRows(Rows))
-    {
-        UE_LOG(LogTemp,
-               Error,
-               TEXT("Maze '%s' has an empty layout."),
-               *MazeData->GetName());
-
-        return false;
-    }
-
-    if (Rows.Num() != GridSize.Y)
-    {
-        UE_LOG(LogTemp,
-               Error,
-               TEXT("Maze '%s' has %d rows, but expected %d."),
-               *MazeData->GetName(),
-               Rows.Num(),
-               GridSize.Y);
-
-        return false;
-    }
-
-    for (int32 Y = 0; Y < GridSize.Y; ++Y)
-    {
-        if (Rows[Y].Len() != GridSize.X)
-        {
-            UE_LOG(LogTemp,
-                   Error,
-                   TEXT("Maze '%s' row %d has %d columns, but expected %d."),
-                   *MazeData->GetName(),
-                   Y,
-                   Rows[Y].Len(),
-                   GridSize.X);
-
-            return false;
-        }
-
-        for (int32 X = 0; X < GridSize.X; ++X)
-        {
-            const TCHAR Character = Rows[Y][X];
-            if (Character != TEXT('#') && Character != TEXT('.') &&
-                Character != TEXT('-') && Character != TEXT('o'))
-            {
-                UE_LOG(LogTemp,
-                       Error,
-                       TEXT("Maze '%s' contains invalid character '%c' at (%d, "
-                            "%d)."),
-                       *MazeData->GetName(),
-                       Character,
-                       X,
-                       Y);
-
-                return false;
-            }
-        }
-    }
     FPacGridPosition const PlayerStart = MazeData->PlayerStart;
 
-    if (!IsValidGridPosition(PlayerStart))
+    if (!Grid.IsValidPosition(PlayerStart))
     {
         UE_LOG(LogTemp,
                Error,
@@ -174,7 +115,7 @@ bool APacMaze::ValidateMazeData() const
     {
         FPacGridPosition const GhostStart = MazeData->GhostStarts[Index];
 
-        if (!IsValidGridPosition(GhostStart))
+        if (!Grid.IsValidPosition(GhostStart))
         {
             UE_LOG(LogTemp,
                    Error,
@@ -187,8 +128,7 @@ bool APacMaze::ValidateMazeData() const
             return false;
         }
 
-        if (ParseTileCharacter(Rows[GhostStart.Y][GhostStart.X]) ==
-            EPacTileType::Wall)
+        if (!Grid.IsWalkable(GhostStart))
         {
             UE_LOG(LogTemp,
                    Error,
@@ -203,7 +143,7 @@ bool APacMaze::ValidateMazeData() const
         }
     }
 
-    if (ParseTileCharacter(Rows[PlayerStart.Y][PlayerStart.X]) == EPacTileType::Wall)
+    if (!Grid.IsWalkable(PlayerStart))
     {
         UE_LOG(LogTemp,
                Error,
@@ -218,103 +158,26 @@ bool APacMaze::ValidateMazeData() const
     return true;
 }
 
-void APacMaze::BuildRuntimeGrid()
-{
-    TArray<FString> Rows;
-
-    if (GetLayoutRows(Rows))
-    {
-        check(Rows.Num());
-
-        int32 const TileCount = GridSize.X * GridSize.Y;
-
-        Tiles.Init(EPacTileType::Empty, TileCount);
-
-        for (int32 Y = 0; Y < GridSize.Y; ++Y)
-        {
-            for (int32 X = 0; X < GridSize.X; ++X)
-            {
-                const TCHAR Character = Rows[Y][X];
-                int32 const Index     = Y * GridSize.X + X;
-                Tiles[Index]          = ParseTileCharacter(Character);
-            }
-        }
-    }
-}
-
-bool APacMaze::GetLayoutRows(TArray<FString> & OutRows) const
-{
-    OutRows.Reset();
-
-    check(MazeData);
-
-    FString NormalizedLayout = MazeData->Layout;
-
-    NormalizedLayout.ReplaceInline(TEXT("\r\n"), TEXT("\n"));
-    NormalizedLayout.ReplaceInline(TEXT("\r"), TEXT("\n"));
-
-    NormalizedLayout.ParseIntoArray(OutRows, TEXT("\n"), false);
-
-    return (OutRows.Num() > 0);
-}
-
-EPacTileType APacMaze::ParseTileCharacter(const TCHAR Character) const
-{
-    switch (Character)
-    {
-        case TEXT('#'):
-            return EPacTileType::Wall;
-
-        case TEXT('.'):
-            return EPacTileType::Pellet;
-
-        case TEXT('-'):
-            return EPacTileType::Empty;
-
-        case TEXT('o'):
-            return EPacTileType::PowerPellet;
-
-        default:
-            checkNoEntry();
-            return EPacTileType::Empty;
-    }
-}
 
 bool APacMaze::IsValidGridPosition(FPacGridPosition const & Position) const
 {
-    return Position.X >= 0 && Position.X < GridSize.X && Position.Y >= 0 &&
-           Position.Y < GridSize.Y;
-}
-
-int32 APacMaze::GetTileIndex(FPacGridPosition const & Position) const
-{
-    check(IsValidGridPosition(Position));
-
-    return Position.Y * GridSize.X + Position.X;
+    return Grid.IsValidPosition(Position);
 }
 
 EPacTileType APacMaze::GetTile(FPacGridPosition const & Position) const
 {
-    check(IsValidGridPosition(Position));
-
-    return Tiles[GetTileIndex(Position)];
+    return Grid.GetTile(Position);
 }
 
 void APacMaze::SetTile(FPacGridPosition const & Position, EPacTileType TileType)
 {
-    check(IsValidGridPosition(Position));
-
-    Tiles[GetTileIndex(Position)] = TileType;
+    Grid.SetTile(Position, TileType);
 }
 
 bool APacMaze::IsWalkable(FPacGridPosition const & Position) const
 {
-    if (!IsValidGridPosition(Position))
-    {
-        return false;
-    }
 
-    return GetTile(Position) != EPacTileType::Wall;
+    return Grid.IsWalkable(Position);
 }
 
 FVector APacMaze::GridToWorld(FPacGridPosition const & Position) const
@@ -341,7 +204,7 @@ FPacGridPosition APacMaze::WorldToGrid(FVector const & WorldPosition) const
 
 FIntPoint APacMaze::GetGridSize() const
 {
-    return GridSize;
+    return Grid.GetSize();
 }
 
 float APacMaze::GetTileSize() const
@@ -353,31 +216,23 @@ bool APacMaze::TryGetNeighbor(FPacGridPosition const & Position,
                               EPacDirection const      Direction,
                               FPacGridPosition &       OutNeighbor) const
 {
-    FPacGridPosition const Neighbor = GetNeighbor(Position, Direction);
-
-    if (!IsValidGridPosition(Neighbor))
-    {
-        return false;
-    }
-
-    OutNeighbor = Neighbor;
-    return true;
+    return Grid.TryGetNeighbor(Position, Direction, OutNeighbor);
 }
 
 bool APacMaze::TryGetTile(FPacGridPosition const & Position,
                           EPacTileType &           OutTile) const
 {
-    if (!IsValidGridPosition(Position))
-    {
-        return false;
-    }
-
-    OutTile = Tiles[GetTileIndex(Position)];
-    return true;
+    return Grid.TryGetTile(Position, OutTile);
 }
 
 void APacMaze::DrawDebugMaze() const
 {
+    // Nothing to draw if the layout failed to load (the error is already
+    // logged); GetPlayerStart() below would also assert.
+    if (!bRuntimeInitialized)
+    {
+        return;
+    }
     for (int32 Y = 0; Y < GridSize.Y; ++Y)
     {
         for (int32 X = 0; X < GridSize.X; ++X)

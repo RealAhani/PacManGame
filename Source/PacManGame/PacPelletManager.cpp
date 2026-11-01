@@ -97,11 +97,6 @@ void APacPelletManager::SpawnPellets()
                                                            : NormalPelletInstances;
 
             int32 const InstanceIndex = Instances->AddInstance(InstanceTransform, true);
-            // int32 const
-            //     InstanceIndex = Instances->AddInstance(FTransform(FRotator::ZeroRotator,
-            //                                                       Maze->GridToWorld(
-            //                                                           Position)),
-            //                                            true);
 
             FPacPelletData PelletData;
             PelletData.GridPosition   = Position;

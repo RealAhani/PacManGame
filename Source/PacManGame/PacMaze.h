@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PacGridTypes.h"
+#include "Grid/PacGrid.h"
 #include "PacMaze.generated.h"
 // clang-format on
 
@@ -13,6 +14,11 @@ class UPacMazeDataAsset;
 class USceneComponent;
 class UCameraComponent;
 
+/**
+ * The Unreal side of the maze: world positions, camera and debug drawing.
+ * All tile data and grid rules live in FPacGrid (see Grid/PacGrid.h); the
+ * functions below simply forward to it.
+ */
 UCLASS()
 class PACMANGAME_API APacMaze : public AActor
 {
@@ -40,6 +46,10 @@ public:
     TArray<FPacGridPosition> const & GetGhostStarts() const;
     void                             InitializeRuntime();
     UCameraComponent*                GetCameraComponent() const;
+    FPacGrid const &                 GetGrid() const
+    {
+        return Grid;
+    }
 
 
 protected:
@@ -51,14 +61,13 @@ protected:
 private:
 
     // -------------------- functions --------------------
-    int32        GetTileIndex(FPacGridPosition const & Position) const;
-    bool         ValidateMazeData() const;
-    void         BuildRuntimeGrid();
-    bool         GetLayoutRows(TArray<FString> & OutRows) const;
-    EPacTileType ParseTileCharacter(TCHAR Character) const;
+    bool ValidateStartPositions() const;
 
     // -------------------- properties --------------------
     bool bRuntimeInitialized = false;
+    // Plain C++ data, not a UPROPERTY: it holds no UObject pointers, so the
+    // garbage collector has nothing to track.
+    FPacGrid Grid;
 
     UPROPERTY(EditDefaultsOnly, Category = "Maze")
     TObjectPtr<UPacMazeDataAsset> MazeData;
@@ -70,8 +79,6 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Maze|Grid", meta = (ClampMin = "1.0"))
     float TileSize = 100.0f;
 
-    UPROPERTY(VisibleInstanceOnly, Category = "Maze|Grid")
-    TArray<EPacTileType> Tiles;
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<USceneComponent> BaseComponent;

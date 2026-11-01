@@ -167,8 +167,6 @@ void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonal
 {
     // The ghost just arrived on a tile: this is the real decision point.
     Personality = NewPersonality;
-    // A pending "reverse after mode switch" permission is used up once.
-    bAllowReverseOnNextDecision = false;
 
     UE_LOG(LogTemp,
            Warning,
@@ -180,6 +178,8 @@ void UPacGhostDecisionComponent::HandleGridPositionChanged(
     [[maybe_unused]] FPacGridPosition const & Position)
 {
     ChooseDirection();
+    // A pending "reverse after mode switch" permission is used up once.
+    bAllowReverseOnNextDecision = false;
 }
 
 bool UPacGhostDecisionComponent::IsDirectionWalkable(
@@ -196,63 +196,23 @@ bool UPacGhostDecisionComponent::IsDirectionWalkable(
     return Maze->IsWalkable(Neighbor);
 }
 
-bool UPacGhostDecisionComponent::TryResolveWalkableTarget(
-    FPacGridPosition const & DesiredTarget,
-    FPacGridPosition &       OutTarget) const
-{
-    check(Maze);
-
-    // The target is already valid and walkable.
-    if (Maze->IsWalkable(DesiredTarget))
-    {
-        OutTarget = DesiredTarget;
-        return true;
-    }
-
-    // The desired target is outside the grid or inside a wall.
-    // Find the walkable tile closest to it using Manhattan distance.
-    FIntPoint const GridSize = Maze->GetGridSize();
-
-    int32 BestDistance = MAX_int32;
-    bool  bFoundTarget = false;
-
-    for (int32 Y = 0; Y < GridSize.Y; ++Y)
-    {
-        for (int32 X = 0; X < GridSize.X; ++X)
-        {
-            FPacGridPosition const Candidate(X, Y);
-
-            if (!Maze->IsWalkable(Candidate))
-            {
-                continue;
-            }
-
-            int32 const Distance = FMath::Abs(X - DesiredTarget.X) +
-                                   FMath::Abs(Y - DesiredTarget.Y);
-
-            if (Distance < BestDistance)
-            {
-                BestDistance = Distance;
-                OutTarget    = Candidate;
-                bFoundTarget = true;
-            }
-        }
-    }
-
-    return bFoundTarget;
-}
 
 bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
     FPacGridPosition const & TargetPosition)
 {
     check(Maze);
     check(MovementComponent);
+    // All maze questions are answered by the plain-data grid (see
+    // Grid/PacGrid.h), which is unit tested without a world.
+    FPacGrid const & Grid = Maze->GetGrid();
 
+    // The desired target may be inside a wall or off the grid (for example
+    // Inky's doubled vector). Use the closest walkable tile instead.
     FPacGridPosition const StartPosition = MovementComponent->GetCurrentGridPosition();
 
     FPacGridPosition ResolvedTargetPosition;
 
-    if (!TryResolveWalkableTarget(TargetPosition, ResolvedTargetPosition))
+    if (!Grid.FindNearestWalkable(TargetPosition, ResolvedTargetPosition))
     {
         UE_LOG(LogTemp, Error, TEXT("PAC: Could not resolve a walkable target."));
 
@@ -267,103 +227,24 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
     {
         return ChooseRandomDirection();
     }
-    EPacDirection const Directions[] = {EPacDirection::Up,
-                                        EPacDirection::Down,
-                                        EPacDirection::Left,
-                                        EPacDirection::Right};
 
     // Use the direction the ghost really travelled to get here, not the last
     // decision that was stored.
-    EPacDirection const TravelDirection = MovementComponent->GetTravelDirection();
-
-    EPacDirection const OppositeDirection = GetOppositeDirection(TravelDirection);
-
-    // Try to find a path, optionally allowing an immediate reversal.
-    auto FindPath = [&](bool bAllowReverse, EPacDirection & OutDirection) -> bool
-    {
-        TArray<FPacGridPosition>              Queue;
-        TSet<FPacGridPosition>                Visited;
-        TMap<FPacGridPosition, EPacDirection> FirstDirection;
-
-        Queue.Add(StartPosition);
-        Visited.Add(StartPosition);
-
-        for (int32 QueueIndex = 0; QueueIndex < Queue.Num(); ++QueueIndex)
-        {
-            FPacGridPosition const CurrentPosition = Queue[QueueIndex];
-
-            for (EPacDirection const Direction : Directions)
-            {
-                FPacGridPosition NeighborPosition;
-
-                if (!Maze->TryGetNeighbor(CurrentPosition, Direction, NeighborPosition))
-                {
-                    continue;
-                }
-
-                if (!Maze->IsWalkable(NeighborPosition) ||
-                    Visited.Contains(NeighborPosition))
-                {
-                    continue;
-                }
-
-                // Only filter reversals on the first step.
-                if (CurrentPosition == StartPosition && !bAllowReverse &&
-                    Direction == OppositeDirection)
-                {
-                    continue;
-                }
-
-                Visited.Add(NeighborPosition);
-
-                EPacDirection FirstStep = Direction;
-
-                if (CurrentPosition != StartPosition)
-                {
-                    EPacDirection const* ExistingFirstStep = FirstDirection.Find(
-                        CurrentPosition);
-
-                    if (ExistingFirstStep == nullptr)
-                    {
-                        continue;
-                    }
-
-                    FirstStep = *ExistingFirstStep;
-                }
-
-                FirstDirection.Add(NeighborPosition, FirstStep);
-
-                if (NeighborPosition == ResolvedTargetPosition)
-                {
-                    OutDirection = FirstStep;
-                    return true;
-                }
-
-                Queue.Add(NeighborPosition);
-            }
-        }
-
-        return false;
-    };
+    EPacDirection const OppositeDirection = GetOppositeDirection(
+        MovementComponent->GetTravelDirection());
 
     EPacDirection ChosenDirection = EPacDirection::None;
 
-    // First prefer a route that doesn't reverse direction.
-    if (FindPath(false, ChosenDirection))
-    {
-        MovementComponent->SetDirection(ChosenDirection);
-        return true;
-    }
-
-    // On a mode switch, allow a reversal immediately.
-    if (bAllowReverseOnNextDecision && FindPath(true, ChosenDirection))
-    {
-        MovementComponent->SetDirection(ChosenDirection);
-        return true;
-    }
-
-    // Otherwise, allow a reversal only if no alternative route exists.
-    if (FindPath(true, ChosenDirection))
+    // Prefer a route that doesn't start by reversing. If every route needs a
+    // reversal (dead end), allow it.
+    if (Grid.FindFirstStep(StartPosition,
+                           ResolvedTargetPosition,
+                           OppositeDirection,
+                           ChosenDirection) ||
+        Grid.FindFirstStep(StartPosition,
+                           ResolvedTargetPosition,
+                           EPacDirection::None,
+                           ChosenDirection))
     {
         MovementComponent->SetDirection(ChosenDirection);
         return true;
