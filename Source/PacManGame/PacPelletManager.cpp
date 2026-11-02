@@ -143,6 +143,11 @@ void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const &
 
     Pellets.Remove(Position);
 
+    // The maze grid is the single source of truth: an eaten pellet is an
+    // empty tile. This manager only owns the visuals.
+    Maze->SetTile(Position, EPacTileType::Empty);
+
+
     // Removing an ISM instance can shift the indices of later instances.
     // Update the stored indices for the affected pellet type.
     for (TPair<FPacGridPosition, FPacPelletData> & Pair : Pellets)

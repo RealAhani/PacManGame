@@ -32,7 +32,6 @@ private:
     void HandleMoveDown(FInputActionValue const & Value);
     void HandleMoveLeft(FInputActionValue const & Value);
     void HandleMoveRight(FInputActionValue const & Value);
-    void HandlePelletConsumed(int32 ScoreValue);
 
     // -------------------- properties --------------------
     UPROPERTY(EditDefaultsOnly, Category = "Input")

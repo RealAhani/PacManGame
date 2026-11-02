@@ -22,13 +22,17 @@ public:
 
     APacGameMode();
     virtual void       BeginPlay() override;
-    APacMaze*          GetMaze();
+    APacMaze*          GetMaze() const;
     APacPelletManager* GetPelletManager() const;
     APacGhostManager*  GetGhostManager() const;
 
 private:
 
     void HandleAllPelletsConsumed();
+    // Wires the whole level together in ONE fixed order (see the .cpp).
+    // Nothing else may depend on BeginPlay order between actors.
+    bool InitializeLevel();
+    void HandlePelletConsumed(int32 ScoreValue);
 
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;

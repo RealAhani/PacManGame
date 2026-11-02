@@ -4,10 +4,6 @@
 #include "PacPlayerController.h"
 #include "Logging/PacManLog.h"
 #include "PacPlayerPawn.h"
-#include "PacGameMode.h"
-#include "PacMaze.h"
-#include "PacPelletManager.h"
-#include "PacPlayerState.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -19,63 +15,40 @@ void APacPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
+    // Input only. Camera, pawn setup, pellets and score are wired by
+    // APacGameMode::InitializeLevel() in one fixed order, so this controller
+    // does not depend on when the GameMode's BeginPlay runs.
     if (!IsLocalController())
-    {
-        return;
-    }
-
-    ULocalPlayer* LocalPlayer = GetLocalPlayer();
-
-    if (LocalPlayer == nullptr)
-    {
-        return;
-    }
-
-    UEnhancedInputLocalPlayerSubsystem* InputSubsystem = LocalPlayer->GetSubsystem<
-        UEnhancedInputLocalPlayerSubsystem>();
-
-    if (InputSubsystem == nullptr)
     {
         return;
     }
 
     if (PlayerMappingContext == nullptr)
     {
+        UE_LOG(LogPacMan,
+               Error,
+               TEXT("PAC: PlayerMappingContext is not assigned on '%s'. "
+                    "Set it in the controller Blueprint."),
+               *GetName());
+        return;
+    }
+    ULocalPlayer* LocalPlayer = GetLocalPlayer();
+
+    UEnhancedInputLocalPlayerSubsystem*
+        InputSubsystem = LocalPlayer != nullptr
+                             ? LocalPlayer->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>()
+                             : nullptr;
+
+    if (InputSubsystem == nullptr)
+    {
+        UE_LOG(LogPacMan,
+               Error,
+               TEXT("PAC: No Enhanced Input subsystem on '%s'."),
+               *GetName());
         return;
     }
 
     InputSubsystem->AddMappingContext(PlayerMappingContext, 0);
-
-    APacGameMode* GameMode = GetWorld()->GetAuthGameMode<APacGameMode>();
-    if (GameMode == nullptr)
-    {
-        return;
-    }
-    APacMaze* Maze = GameMode->GetMaze();
-    if (Maze == nullptr)
-    {
-        return;
-    }
-    // target camera of player is in maze
-    SetViewTarget(Maze);
-
-    APacPlayerPawn* PlayerPawn = Cast<APacPlayerPawn>(GetPawn());
-    if (PlayerPawn == nullptr)
-    {
-        return;
-    }
-    PlayerPawn->InitializeMaze(Maze);
-
-    APacPelletManager* PelletManager = GameMode->GetPelletManager();
-    if (PelletManager == nullptr)
-    {
-        return;
-    }
-
-    PelletManager->BindToPlayerMovement(PlayerPawn->GetGridMovementComponent());
-
-    PelletManager->OnPelletConsumed
-        .AddUObject(this, &APacPlayerController::HandlePelletConsumed);
 }
 
 void APacPlayerController::SetupInputComponent()
@@ -87,12 +60,20 @@ void APacPlayerController::SetupInputComponent()
 
     if (EnhancedInputComponent == nullptr)
     {
+        UE_LOG(LogPacMan,
+               Error,
+               TEXT("PAC: Input component is not UEnhancedInputComponent. Set "
+                    "Default Input Component Class in Project Settings."));
         return;
     }
 
     if (MoveUpAction == nullptr || MoveDownAction == nullptr ||
         MoveLeftAction == nullptr || MoveRightAction == nullptr)
     {
+        UE_LOG(LogPacMan,
+               Error,
+               TEXT("PAC: A Move input action is not assigned on '%s'."),
+               *GetName());
         return;
     }
 
@@ -165,17 +146,4 @@ void APacPlayerController::HandleMoveLeft(FInputActionValue const & Value)
 void APacPlayerController::HandleMoveRight(FInputActionValue const & Value)
 {
     SubmitDirection(EPacDirection::Right);
-}
-
-void APacPlayerController::HandlePelletConsumed(int32 const ScoreValue)
-{
-    APacPlayerState* PacPlayerState = Cast<APacPlayerState>(PlayerState);
-
-    if (PacPlayerState == nullptr)
-    {
-        UE_LOG(LogPacMan, Error, TEXT("PAC: Cannot add score. PlayerState is null."));
-        return;
-    }
-
-    PacPlayerState->AddScore(ScoreValue);
 }

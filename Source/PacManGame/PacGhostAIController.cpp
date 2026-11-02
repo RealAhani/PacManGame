@@ -25,7 +25,7 @@ void APacGhostAIController::StartStateTree()
     }
 
     UE_LOG(LogPacMan,
-           Error,
+           Verbose,
            TEXT("PAC: Controller=%s | Controlled Pawn=%s"),
            *GetName(),
            *GetNameSafe(GetPawn()));

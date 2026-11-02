@@ -8,6 +8,7 @@
 
 class APacMaze;
 class APacGhostPawn;
+class UPacGridMovementComponent;
 
 UCLASS()
 class PACMANGAME_API APacGhostManager : public AActor
@@ -18,7 +19,7 @@ public:
 
     APacGhostManager();
 
-    void Initialize(APacMaze* InMaze);
+    void Initialize(APacMaze* InMaze, UPacGridMovementComponent* InPlayerMovement);
 
 private:
 
@@ -29,6 +30,8 @@ private:
 
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;
+    UPROPERTY()
+    TObjectPtr<UPacGridMovementComponent> PlayerMovement;
 
     UPROPERTY()
     TArray<TObjectPtr<APacGhostPawn>> Ghosts;

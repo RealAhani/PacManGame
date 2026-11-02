@@ -46,9 +46,16 @@ public:
     TArray<FPacGridPosition> const & GetGhostStarts() const;
     void                             InitializeRuntime();
     UCameraComponent*                GetCameraComponent() const;
-    FPacGrid const &                 GetGrid() const
+
+    FPacGrid const & GetGrid() const
     {
         return Grid;
+    }
+
+    // True once the layout parsed and the start positions validated.
+    bool IsRuntimeInitialized() const
+    {
+        return bRuntimeInitialized;
     }
 
 

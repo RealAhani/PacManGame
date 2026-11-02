@@ -230,8 +230,12 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
 
     // Use the direction the ghost really travelled to get here, not the last
     // decision that was stored.
-    EPacDirection const OppositeDirection = GetOppositeDirection(
-        MovementComponent->GetTravelDirection());
+    // A pending mode switch (Scatter <-> Chase) lifts the no-reverse rule once.
+    EPacDirection const
+        ForbiddenFirstStep = bAllowReverseOnNextDecision
+                                 ? EPacDirection::None
+                                 : GetOppositeDirection(
+                                       MovementComponent->GetTravelDirection());
 
     EPacDirection ChosenDirection = EPacDirection::None;
 
@@ -239,12 +243,13 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
     // reversal (dead end), allow it.
     if (Grid.FindFirstStep(StartPosition,
                            ResolvedTargetPosition,
-                           OppositeDirection,
+                           ForbiddenFirstStep,
                            ChosenDirection) ||
-        Grid.FindFirstStep(StartPosition,
-                           ResolvedTargetPosition,
-                           EPacDirection::None,
-                           ChosenDirection))
+        (ForbiddenFirstStep != EPacDirection::None &&
+         Grid.FindFirstStep(StartPosition,
+                            ResolvedTargetPosition,
+                            EPacDirection::None,
+                            ChosenDirection)))
     {
         MovementComponent->SetDirection(ChosenDirection);
         return true;

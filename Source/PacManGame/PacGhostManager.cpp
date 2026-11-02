@@ -11,7 +11,6 @@
 #include "PacGridMovementComponent.h"
 #include "PacMazeDataAsset.h"
 
-#include "kismet/GameplayStatics.h"
 // clang-format on
 
 APacGhostManager::APacGhostManager()
@@ -19,11 +18,14 @@ APacGhostManager::APacGhostManager()
     PrimaryActorTick.bCanEverTick = false;
 }
 
-void APacGhostManager::Initialize(APacMaze* InMaze)
+void APacGhostManager::Initialize(APacMaze*                  InMaze,
+                                  UPacGridMovementComponent* InPlayerMovement)
 {
     check(InMaze);
+    check(InPlayerMovement);
 
-    Maze = InMaze;
+    Maze           = InMaze;
+    PlayerMovement = InPlayerMovement;
 
     SpawnGhosts();
 }
@@ -40,31 +42,7 @@ void APacGhostManager::SpawnGhosts()
         return;
     }
 
-    APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-
-    if (PlayerPawn == nullptr)
-    {
-        UE_LOG(LogPacMan,
-               Error,
-               TEXT("Pac: GhostManager could not find the player pawn."));
-        return;
-    }
-
-    UPacGridMovementComponent* PlayerMovementComponent = PlayerPawn->FindComponentByClass<
-        UPacGridMovementComponent>();
-    if (PlayerMovementComponent == nullptr)
-    {
-        UE_LOG(LogPacMan,
-               Error,
-               TEXT("Pac: Player Pawn '%s' has no PacGridMovementComponent."),
-               *GetNameSafe(PlayerPawn));
-        return;
-    }
-
-    UE_LOG(LogPacMan,
-           Log,
-           TEXT("Pac: GhostManager found player movement component '%s'."),
-           *GetNameSafe(PlayerMovementComponent));
+    UPacGridMovementComponent* PlayerMovementComponent = PlayerMovement;
 
 
     TArray<FPacGridPosition> const & GhostStarts = Maze->GetGhostStarts();

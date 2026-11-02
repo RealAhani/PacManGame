@@ -8,14 +8,29 @@ public class PacManGame : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] 
-		{ 
-			"Core", "CoreUObject", "Engine", 
-			"InputCore", "EnhancedInput","UMG" ,
-			"AIModule","StateTreeModule" ,"GameplayStateTreeModule"
-	});
+	// 	PublicDependencyModuleNames.AddRange(new string[] 
+	// 	{ 
+	// 		"Core", "CoreUObject", "Engine", 
+	// 		"InputCore", "EnhancedInput","UMG" ,
+	// 		"AIModule","StateTreeModule" ,"GameplayStateTreeModule"
+	// });
+    //
+    
+        // Public: modules whose types appear in OUR public headers.
+		//   UMG              -> Blueprint/UserWidget.h (PacHUDWidget.h)
+		//   AIModule         -> AIController.h (PacGhostAIController.h)
+		//   StateTreeModule  -> StateTreeTaskBase.h (PacGhostSetBehaviorModeTask.h)
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", "InputCore",
+			"UMG", "AIModule", "StateTreeModule"
+		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        // Private: only used inside .cpp files.
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"EnhancedInput", "GameplayStateTreeModule"
+		});
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
