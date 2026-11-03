@@ -24,6 +24,7 @@ public:
     void                       SetDesiredDirection(EPacDirection Direction);
     void                       InitializeMaze(APacMaze* Maze);
     bool                       IsMovementBlocked() const;
+    void                       SetMovementEnabled(bool bEnabled);
     UPacGridMovementComponent* GetGridMovementComponent() const;
 
 private:

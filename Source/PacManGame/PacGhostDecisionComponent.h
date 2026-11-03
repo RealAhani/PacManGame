@@ -30,6 +30,13 @@ enum class EPacGhostPersonality : uint8
     Clyde
 };
 
+
+// Lets a Blueprint react (change material, play a sound, ...) when the mode changes.
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPacGhostModeChanged,
+                                            EPacGhostBehaviorMode,
+                                            NewMode);
+
+
 UCLASS(ClassGroup = (PacMan), meta = (BlueprintSpawnableComponent))
 class PACMANGAME_API UPacGhostDecisionComponent : public UActorComponent
 {
@@ -44,17 +51,48 @@ public:
     void SetScatterTarget(FPacGridPosition TargetPosition);
     void SetPlayerMovementComponent(UPacGridMovementComponent* InPlayerMovementComponent);
     void SetPersonality(EPacGhostPersonality NewPersonality);
+    // Where an Eaten ghost returns to (its start tile).
+    void SetHomePosition(FPacGridPosition InHomePosition);
     void SetBlinkyMovementComponent(UPacGhostMovementComponent* InBlinkyMovementComponent);
+    EPacGhostBehaviorMode GetBehaviorMode() const
+    {
+        return BehaviorMode;
+    }
 
+    // Only a ghost that is hunting (Scatter / Chase) can hurt Pac-Man.
+    // Frightened and Eaten ghosts are harmless.
+    bool IsDangerous() const
+    {
+        return BehaviorMode == EPacGhostBehaviorMode::Scatter ||
+               BehaviorMode == EPacGhostBehaviorMode::Chase;
+    }
 
+    // Call after the movement component was put back on its start tile.
+    void Respawn();
+
+    UPROPERTY(BlueprintAssignable, Category = "Ghost AI")
+    FPacGhostModeChanged OnModeChanged;
+
+    // Scatter / Chase are "base" modes: they are remembered, and applied
+    // unless the ghost is Frightened or Eaten right now (the StateTree keeps
+    // sending them on its own schedule). Frightened / Eaten apply at once.
     UFUNCTION(BlueprintCallable, Category = "Ghost AI")
     void SetBehaviorMode(EPacGhostBehaviorMode NewMode);
+
+    // Ends Frightened / Eaten and goes back to the remembered base mode.
+    void ReleaseOverride();
+
+    EPacGhostBehaviorMode GetBaseMode() const
+    {
+        return BaseMode;
+    }
 
 
 private:
 
     void HandleGridPositionChanged([[maybe_unused]] FPacGridPosition const & Position);
     void ChooseDirection();
+    void ApplyMode(EPacGhostBehaviorMode NewMode);
     bool ChooseDirectionTowardTarget(FPacGridPosition const & TargetPosition);
     // Picks a random open direction, never reversing unless at a dead end.
     // Used for wandering modes and when the ghost is standing on its target.
@@ -82,11 +120,23 @@ private:
     UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
     EPacGhostBehaviorMode BehaviorMode = EPacGhostBehaviorMode::None;
 
+    // The Scatter / Chase mode the schedule (StateTree) last asked for.
+    UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
+    EPacGhostBehaviorMode BaseMode = EPacGhostBehaviorMode::Scatter;
+
     UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
     FPacGridPosition ScatterTargetPosition;
 
     UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
     bool bHasScatterTarget = false;
 
-    bool bAllowReverseOnNextDecision = false;
+    UPROPERTY(EditDefaultsOnly, Category = "Ghost AI", meta = (ClampMin = "0.1"))
+    float FrightenedSpeedMultiplier = 0.6f;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Ghost AI", meta = (ClampMin = "0.1"))
+    float EatenSpeedMultiplier = 2.0f;
+
+    FPacGridPosition HomePosition;
+    bool             bHasHomePosition            = false;
+    bool             bAllowReverseOnNextDecision = false;
 };

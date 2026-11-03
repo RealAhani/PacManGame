@@ -5,6 +5,7 @@
 #include "Logging/PacManLog.h"
 #include "PacHUDWidget.h"
 #include "PacPlayerState.h"
+#include "PacGameMode.h"
 #include "GameFramework/PlayerController.h"
 
 #include "Blueprint/UserWidget.h"
@@ -49,9 +50,33 @@ void APacHUD::BeginPlay()
 
     // Set the initial value.
     HUDWidget->SetScore(PacPlayerState->GetCurrentScore());
+    HUDWidget->SetLives(PacPlayerState->GetLives());
+
 
     // Listen for future changes.
     PacPlayerState->OnScoreChanged.AddUObject(this, &APacHUD::HandleScoreChanged);
+    PacPlayerState->OnLivesChanged.AddUObject(this, &APacHUD::HandleLivesChanged);
+
+    if (APacGameMode* GameMode = GetWorld()->GetAuthGameMode<APacGameMode>())
+    {
+        GameMode->OnGameOver.AddUObject(this, &APacHUD::HandleGameOver);
+    }
+}
+
+void APacHUD::HandleLivesChanged(int32 const Lives)
+{
+    if (HUDWidget != nullptr)
+    {
+        HUDWidget->SetLives(Lives);
+    }
+}
+
+void APacHUD::HandleGameOver()
+{
+    if (HUDWidget != nullptr)
+    {
+        HUDWidget->ShowGameOver();
+    }
 }
 
 void APacHUD::HandleScoreChanged(int32 const Score)

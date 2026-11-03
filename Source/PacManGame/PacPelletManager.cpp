@@ -163,6 +163,12 @@ void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const &
 
     OnPelletConsumed.Broadcast(PelletData.ScoreValue);
 
+    if (PelletData.bIsPowerPellet)
+    {
+        OnPowerPelletConsumed.Broadcast();
+    }
+
+
     if (Pellets.IsEmpty())
     {
         OnAllPelletsConsumed.Broadcast();

@@ -22,7 +22,11 @@ public:
 
     UPacGhostMovementComponent();
     void InitializeMaze(APacMaze* InMaze, FPacGridPosition const & StartPosition);
-    void             SetDirection(EPacDirection Direction);
+    void SetDirection(EPacDirection Direction);
+    // Freezes / unfreezes movement (death pause, level complete, game over).
+    void SetMovementEnabled(bool bEnabled);
+    // 1 = normal. Frightened ghosts are slower, eaten ghosts faster.
+    void             SetSpeedMultiplier(float Multiplier);
     FPacGridPosition GetCurrentGridPosition() const;
     EPacDirection    GetTravelDirection() const;
     bool             IsMoving() const
@@ -64,4 +68,8 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Grid Movement", meta = (ClampMin = "0.0"))
     float MovementSpeed = 250.0f;
+
+    bool bMovementEnabled = true;
+
+    float SpeedMultiplier = 1.0f;
 };

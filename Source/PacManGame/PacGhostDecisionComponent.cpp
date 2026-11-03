@@ -52,6 +52,16 @@ void UPacGhostDecisionComponent::Initialize(APacMaze* InMaze,
     ChooseDirection();
 }
 
+void UPacGhostDecisionComponent::Respawn()
+{
+    check(Maze);
+    check(MovementComponent);
+
+    bAllowReverseOnNextDecision = false;
+    ChooseDirection();
+}
+
+
 void UPacGhostDecisionComponent::SetPlayerMovementComponent(
     UPacGridMovementComponent* InPlayerMovementComponent)
 {
@@ -132,7 +142,38 @@ void UPacGhostDecisionComponent::SetScatterTarget(FPacGridPosition TargetPositio
     }
 }
 
-void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
+void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode const NewMode)
+{
+    bool const bHuntingMode = NewMode == EPacGhostBehaviorMode::Scatter ||
+                              NewMode == EPacGhostBehaviorMode::Chase;
+
+    if (bHuntingMode)
+    {
+        BaseMode = NewMode;
+
+        // Frightened / Eaten win over the schedule. The new base mode is
+        // remembered and applied by ReleaseOverride().
+        if (BehaviorMode == EPacGhostBehaviorMode::Frightened ||
+            BehaviorMode == EPacGhostBehaviorMode::Eaten)
+        {
+            UE_LOG(LogPacMan,
+                   Verbose,
+                   TEXT("PAC: Base mode %s remembered, ghost is %s."),
+                   *UEnum::GetValueAsString(NewMode),
+                   *UEnum::GetValueAsString(BehaviorMode));
+            return;
+        }
+    }
+
+    ApplyMode(NewMode);
+}
+
+void UPacGhostDecisionComponent::ReleaseOverride()
+{
+    ApplyMode(BaseMode);
+}
+
+void UPacGhostDecisionComponent::ApplyMode(EPacGhostBehaviorMode const NewMode)
 {
     if (BehaviorMode == NewMode)
     {
@@ -145,9 +186,28 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
     bool const bIsScatterOrChase = NewMode == EPacGhostBehaviorMode::Scatter ||
                                    NewMode == EPacGhostBehaviorMode::Chase;
 
-    bAllowReverseOnNextDecision = bWasScatterOrChase && bIsScatterOrChase;
+
+    // Classic rule: switching Scatter <-> Chase, or getting frightened, lets
+    // the ghost turn around once.
+    bAllowReverseOnNextDecision = bWasScatterOrChase &&
+                                  (bIsScatterOrChase ||
+                                   NewMode == EPacGhostBehaviorMode::Frightened);
 
     BehaviorMode = NewMode;
+
+    float SpeedMultiplier = 1.0f;
+    if (NewMode == EPacGhostBehaviorMode::Frightened)
+    {
+        SpeedMultiplier = FrightenedSpeedMultiplier;
+    }
+    else if (NewMode == EPacGhostBehaviorMode::Eaten)
+    {
+        SpeedMultiplier = EatenSpeedMultiplier;
+    }
+    MovementComponent->SetSpeedMultiplier(SpeedMultiplier);
+
+    OnModeChanged.Broadcast(NewMode);
+
 
     UE_LOG(LogPacMan,
            Warning,
@@ -161,6 +221,12 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode NewMode)
         ChooseDirection();
         bAllowReverseOnNextDecision = false;
     }
+}
+
+void UPacGhostDecisionComponent::SetHomePosition(FPacGridPosition const InHomePosition)
+{
+    HomePosition     = InHomePosition;
+    bHasHomePosition = true;
 }
 
 void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonality)
@@ -372,6 +438,14 @@ void UPacGhostDecisionComponent::ChooseDirection()
         return;
     }
 
+    // An eaten ghost runs home by the shortest way.
+    if (BehaviorMode == EPacGhostBehaviorMode::Eaten && bHasHomePosition)
+    {
+        ChooseDirectionTowardTarget(HomePosition);
+        return;
+    }
+
+    // Frightened (and anything without a target) wanders.
     ChooseRandomDirection();
 }
 

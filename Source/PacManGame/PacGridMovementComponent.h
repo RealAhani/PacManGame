@@ -29,6 +29,8 @@ public:
     EPacDirection    GetCurrentDirection() const;
 
     void InitializeMaze(APacMaze* InMaze);
+    // Freezes / unfreezes movement (death pause, level complete, game over).
+    void SetMovementEnabled(bool bEnabled);
 
     bool IsMovementBlocked() const
     {
@@ -74,4 +76,5 @@ private:
     float MovementSpeed = 300.0f;
 
     bool bMovementBlocked = false;
+    bool bMovementEnabled = true;
 };

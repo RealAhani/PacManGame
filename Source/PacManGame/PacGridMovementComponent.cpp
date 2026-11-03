@@ -24,7 +24,7 @@ void UPacGridMovementComponent::TickComponent(
 
     // Not initialised yet (InitializeMaze() has not run). That is a normal
     // state for the first frames, so stay silent instead of spamming per tick.
-    if (Maze == nullptr || UpdatedComponent == nullptr)
+    if (!bMovementEnabled || Maze == nullptr || UpdatedComponent == nullptr)
     {
         return;
     }
@@ -232,4 +232,9 @@ void UPacGridMovementComponent::InitializeMaze(APacMaze* InMaze)
            CurrentGridPosition.Y,
            IsComponentTickEnabled() ? TEXT("Enabled") : TEXT("Disabled"),
            *GetNameSafe(Maze));
+}
+
+void UPacGridMovementComponent::SetMovementEnabled(bool const bEnabled)
+{
+    bMovementEnabled = bEnabled;
 }

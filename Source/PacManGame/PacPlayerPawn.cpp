@@ -49,3 +49,11 @@ UPacGridMovementComponent* APacPlayerPawn::GetGridMovementComponent() const
 {
     return GridMovementComponent;
 }
+
+
+void APacPlayerPawn::SetMovementEnabled(bool const bEnabled)
+{
+    check(GridMovementComponent);
+
+    GridMovementComponent->SetMovementEnabled(bEnabled);
+}

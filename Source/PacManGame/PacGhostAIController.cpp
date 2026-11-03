@@ -34,3 +34,31 @@ void APacGhostAIController::StartStateTree()
 
     UE_LOG(LogPacMan, Log, TEXT("PAC: Ghost StateTree started."));
 }
+
+void APacGhostAIController::RestartStateTree()
+{
+    if (StateTreeAIComponent == nullptr)
+    {
+        return;
+    }
+
+    StateTreeAIComponent->StopLogic(TEXT("Pac restart"));
+    StateTreeAIComponent->StartLogic();
+}
+
+void APacGhostAIController::SetStateTreePaused(bool const bPaused)
+{
+    if (StateTreeAIComponent == nullptr || !StateTreeAIComponent->IsRunning())
+    {
+        return;
+    }
+
+    if (bPaused && !StateTreeAIComponent->IsPaused())
+    {
+        StateTreeAIComponent->PauseLogic(TEXT("Pac frozen"));
+    }
+    else if (!bPaused && StateTreeAIComponent->IsPaused())
+    {
+        StateTreeAIComponent->ResumeLogic(TEXT("Pac resumed"));
+    }
+}

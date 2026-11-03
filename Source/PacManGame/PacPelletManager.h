@@ -14,6 +14,7 @@ class UInstancedStaticMeshComponent;
 // -------------------- Delegate(Fptr,event) --------------------
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnPelletConsumed, int32);
 DECLARE_MULTICAST_DELEGATE(FOnAllPelletsConsumed);
+DECLARE_MULTICAST_DELEGATE(FOnPowerPelletConsumed);
 
 struct FPacPelletData
 {
@@ -36,8 +37,9 @@ public:
     void BindToPlayerMovement(UPacGridMovementComponent* MovementComponent);
 
     // -------------------- properties --------------------
-    FOnPelletConsumed     OnPelletConsumed;
-    FOnAllPelletsConsumed OnAllPelletsConsumed;
+    FOnPelletConsumed      OnPelletConsumed;
+    FOnAllPelletsConsumed  OnAllPelletsConsumed;
+    FOnPowerPelletConsumed OnPowerPelletConsumed;
 
 private:
 

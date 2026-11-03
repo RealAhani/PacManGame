@@ -21,14 +21,14 @@ void UPacGhostMovementComponent::TickComponent(
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (Maze == nullptr || UpdatedComponent == nullptr)
+    if (!bMovementEnabled || Maze == nullptr || UpdatedComponent == nullptr)
     {
         return;
     }
     // Spend this frame's whole movement budget, carrying leftover distance
     // into the next tile. A ghost that arrives and decides a new direction
     // (via OnGridPositionChanged) starts moving in the same frame.
-    float RemainingDistance = MovementSpeed * DeltaTime;
+    float RemainingDistance = MovementSpeed * SpeedMultiplier * DeltaTime;
 
     // Safety cap so a huge DeltaTime (hitch, breakpoint) cannot loop for long.
     constexpr int32 MaxTilesPerFrame = 4;
@@ -161,4 +161,14 @@ float UPacGhostMovementComponent::MoveTowardTarget(float const MaxDistance)
                              Hit,
                              ETeleportType::None);
     return 0.0f;
+}
+
+void UPacGhostMovementComponent::SetMovementEnabled(bool const bEnabled)
+{
+    bMovementEnabled = bEnabled;
+}
+
+void UPacGhostMovementComponent::SetSpeedMultiplier(float const Multiplier)
+{
+    SpeedMultiplier = FMath::Max(Multiplier, 0.0f);
 }
