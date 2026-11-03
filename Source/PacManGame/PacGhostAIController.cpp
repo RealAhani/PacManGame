@@ -44,6 +44,22 @@ void APacGhostAIController::RestartStateTree()
 
     StateTreeAIComponent->StopLogic(TEXT("Pac restart"));
     StateTreeAIComponent->StartLogic();
+
+    // Make sure a pause from before the restart does not carry over.
+    StateTreeAIComponent->ResumeLogic(TEXT("Pac restart"));
+
+    UE_LOG(LogPacMan,
+           Log,
+           TEXT("PAC: Ghost StateTree started for %s."),
+           *GetNameSafe(GetPawn()));
+}
+
+void APacGhostAIController::StopStateTree()
+{
+    if (StateTreeAIComponent != nullptr)
+    {
+        StateTreeAIComponent->StopLogic(TEXT("Pac stop"));
+    }
 }
 
 void APacGhostAIController::SetStateTreePaused(bool const bPaused)
@@ -53,11 +69,13 @@ void APacGhostAIController::SetStateTreePaused(bool const bPaused)
         return;
     }
 
-    if (bPaused && !StateTreeAIComponent->IsPaused())
+    // No IsPaused() check on purpose: calling Resume on a running tree is
+    // harmless, while trusting IsPaused() could leave a tree stuck paused.
+    if (bPaused)
     {
-        StateTreeAIComponent->PauseLogic(TEXT("Pac frozen"));
+        StateTreeAIComponent->PauseLogic(TEXT("Pac frightened"));
     }
-    else if (!bPaused && StateTreeAIComponent->IsPaused())
+    else
     {
         StateTreeAIComponent->ResumeLogic(TEXT("Pac resumed"));
     }

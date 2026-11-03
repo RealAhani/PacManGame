@@ -87,6 +87,7 @@ private:
     void                  ReviveArrivedGhosts();
     void                  SetStateTreesPaused(bool bPaused);
     void                  RestartStateTrees();
+    void                  StopStateTrees();
     void                  DrawDebugModes() const;
 
     // Scatter / Chase timeline. Paused while ghosts are frightened.
@@ -116,4 +117,8 @@ private:
     float FrightenedTimeLeft = 0.0f;
     int32 GhostsEatenInChain = 0;
     bool  bRunning           = false;
+
+    // The trees are (re)started when play begins, not at spawn / reset: during
+    // the Ready pause the round timers must not be running yet.
+    bool bStateTreesNeedStart = false;
 };

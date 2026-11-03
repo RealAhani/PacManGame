@@ -207,28 +207,20 @@ void APacGhostManager::SpawnGhosts()
 
         if (bUseStateTree)
         {
-            // Start the StateTree only after ghost initialization.
-            APacGhostAIController* AIController = Cast<APacGhostAIController>(
-                Ghost->GetController());
-
-            if (AIController == nullptr)
+            // The StateTree is started when play begins (SetMovementEnabled),
+            // so its round timers do not run during the Ready pause. Until
+            // then the ghost just waits in the first round's mode.
+            if (Cast<APacGhostAIController>(Ghost->GetController()) == nullptr)
             {
                 UE_LOG(LogPacMan,
                        Error,
                        TEXT("PAC: Ghost %d has no PacGhostAIController. "
-                            "StateTree was not started."),
+                            "StateTree cannot started."),
                        Index);
             }
-            else
-            {
-                AIController->StartStateTree();
-                DecisionComponent->SetBehaviorMode(GetBaseMode());
-            }
         }
-        else
-        {
-            DecisionComponent->SetBehaviorMode(GetBaseMode());
-        }
+
+        DecisionComponent->SetBehaviorMode(GetBaseMode());
 
         Ghosts.Add(Ghost);
 
@@ -241,6 +233,7 @@ void APacGhostManager::SpawnGhosts()
     }
 
     RestartSchedule();
+    bStateTreesNeedStart = true;
 
     UE_LOG(LogPacMan, Log, TEXT("PAC: Spawned %d ghosts."), Ghosts.Num());
 }
@@ -348,7 +341,7 @@ void APacGhostManager::EndFrightened()
             Decision->ReleaseOverride();
         }
     }
-    SetStateTreesPaused(!bRunning);
+    SetStateTreesPaused(false);
 }
 
 // An eaten ghost that got back to its start tile comes back to life.
@@ -430,9 +423,12 @@ void APacGhostManager::SetMovementEnabled(bool const bEnabled)
 {
     bRunning = bEnabled;
 
-    // The tree's timers stand still while the game is frozen or frightened.
-    SetStateTreesPaused(!bEnabled || FrightenedTimeLeft > 0.0f);
-
+    // Play begins: (re)start the StateTrees now, at their Root (first round).
+    if (bEnabled && bStateTreesNeedStart)
+    {
+        bStateTreesNeedStart = false;
+        RestartStateTrees();
+    }
 
     for (APacGhostPawn* Ghost : Ghosts)
     {
@@ -477,8 +473,10 @@ void APacGhostManager::ResetGhosts()
         Decision->Respawn();
     }
 
-    // The StateTree goes back to its Root, i.e. the first state (Scatter1).
-    RestartStateTrees();
+    // Stop the trees now; they start again at their Root (Scatter1) when the
+    // Ready pause ends and play begins.
+    StopStateTrees();
+    bStateTreesNeedStart = true;
 }
 
 void APacGhostManager::SetStateTreesPaused(bool const bPaused)
@@ -502,6 +500,29 @@ void APacGhostManager::SetStateTreesPaused(bool const bPaused)
         }
     }
 }
+
+void APacGhostManager::StopStateTrees()
+{
+    if (!bUseStateTree)
+    {
+        return;
+    }
+
+    for (APacGhostPawn* Ghost : Ghosts)
+    {
+        if (!IsValid(Ghost))
+        {
+            continue;
+        }
+
+        if (APacGhostAIController* AIController = Cast<APacGhostAIController>(
+                Ghost->GetController()))
+        {
+            AIController->StopStateTree();
+        }
+    }
+}
+
 
 void APacGhostManager::RestartStateTrees()
 {

@@ -19,6 +19,7 @@ public:
     void StartStateTree();
     // Stop + start: the tree begins again at the Root (first state).
     void RestartStateTree();
+    void StopStateTree();
     // Best effort: freezes / resumes the tree's own timers (Delay tasks).
     void SetStateTreePaused(bool bPaused);
 
