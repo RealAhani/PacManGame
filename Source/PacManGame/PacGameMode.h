@@ -45,6 +45,7 @@ public:
     {
         return PacManGameState;
     }
+    void                RestartLevel() const;
     FOnPacGameOver      OnGameOver;
     FOnPacLevelCompelet OnLevelCompelet;
 

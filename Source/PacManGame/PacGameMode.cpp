@@ -293,6 +293,13 @@ void APacGameMode::FinishDeath()
         UE_LOG(LogPacMan, Log, TEXT("PAC: Game over."));
 
         OnGameOver.Broadcast();
+        GetWorldTimerManager()
+            .SetTimer(DeathTimerHandle,
+                      this,
+                      &APacGameMode::RestartLevel,
+                      FMath::Max(DeathPauseSeconds, KINDA_SMALL_NUMBER),
+                      false);
+        BeginReady();
         return;
     }
 
@@ -330,4 +337,10 @@ void APacGameMode::SetGameState(EPacGameState const NewState)
            *UEnum::GetValueAsString(NewState));
 
     PacManGameState = NewState;
+}
+
+void APacGameMode::RestartLevel() const
+{
+    FString const LevelName = UGameplayStatics::GetCurrentLevelName(this, true);
+    UGameplayStatics::OpenLevel(this, FName(*LevelName));
 }
