@@ -85,7 +85,7 @@ void APacPelletManager::SpawnPellets()
                 default:
                     continue;
             }
-            FVector InstanceScale = bIsPowerPellet ? FVector(0.3f) : FVector(1.0f);
+            FVector InstanceScale = bIsPowerPellet ? FVector(0.3f) : FVector(0.4f);
 
             FTransform InstanceTransform;
             InstanceTransform.SetLocation(Maze->GridToWorld(Position));

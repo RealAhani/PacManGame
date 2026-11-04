@@ -254,7 +254,7 @@ bool UPacGhostDecisionComponent::IsDirectionWalkable(
 {
     FPacGridPosition Neighbor;
 
-    if (!Maze->TryGetNeighbor(Position, Direction, Neighbor))
+    if (!Maze->TryGetNeighborWrapping(Position, Direction, Neighbor))
     {
         return false;
     }

@@ -45,6 +45,19 @@ public:
                         EPacDirection            Direction,
                         FPacGridPosition &       OutNeighbor) const;
 
+    // Like TryGetNeighbor, but an open tile on the edge of the grid connects to
+    // the open tile on the opposite edge: this is the tunnel. Leaving the grid
+    // through a wall, or arriving at a wall, is still blocked. Use this for
+    // anything that moves or searches; TryGetNeighbor never wraps.
+    bool TryGetNeighborWrapping(FPacGridPosition const & Position,
+                                EPacDirection            Direction,
+                                FPacGridPosition &       OutNeighbor) const;
+
+    // True if From -> To is a tunnel step (the two tiles are not adjacent).
+    static bool IsWrapStep(FPacGridPosition const & From,
+                           FPacGridPosition const & To);
+
+
     // how many tile of the specified tiles exist in the map
     int32 CountTiles(EPacTileType TileType) const;
 

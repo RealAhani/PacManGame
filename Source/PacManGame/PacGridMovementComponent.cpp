@@ -99,15 +99,18 @@ bool UPacGridMovementComponent::TryStartMovement()
 
         FPacGridPosition RequestedNextPosition;
 
-        if (Maze->TryGetNeighbor(CurrentGridPosition,
-                                 RequestedDirection,
-                                 RequestedNextPosition) &&
+        if (Maze->TryGetNeighborWrapping(CurrentGridPosition,
+                                         RequestedDirection,
+                                         RequestedNextPosition) &&
             Maze->IsWalkable(RequestedNextPosition))
         {
 
             // Requested direction is available.
             CurrentDirection   = RequestedDirection;
             TargetGridPosition = RequestedNextPosition;
+            bCrossingTunnel    = FPacGrid::IsWrapStep(CurrentGridPosition,
+                                                      TargetGridPosition);
+
 
             // Remove only after successfully starting movement.
             InputQueue.RemoveAt(0);
@@ -140,7 +143,9 @@ bool UPacGridMovementComponent::TryStartMovement()
 
     FPacGridPosition CurrentNextPosition;
 
-    if (!Maze->TryGetNeighbor(CurrentGridPosition, CurrentDirection, CurrentNextPosition))
+    if (!Maze->TryGetNeighborWrapping(CurrentGridPosition,
+                                      CurrentDirection,
+                                      CurrentNextPosition))
     {
 
         bMovementBlocked = true;
@@ -159,6 +164,7 @@ bool UPacGridMovementComponent::TryStartMovement()
 
     // Current direction is still available.
     TargetGridPosition = CurrentNextPosition;
+    bCrossingTunnel = FPacGrid::IsWrapStep(CurrentGridPosition, TargetGridPosition);
 
     bMovementBlocked = false;
 
@@ -170,26 +176,52 @@ float UPacGridMovementComponent::MoveTowardTarget(float const MaxDistance)
     check(Maze);
     check(UpdatedComponent);
 
-    FVector const TargetWorldPosition = Maze->GridToWorld(TargetGridPosition);
+    // A tunnel step is two walks: first off the edge of the map to a virtual
+    // tile just outside it, then (after popping out on the opposite side) from
+    // the virtual tile there into the real target tile.
+    FPacGridPosition const Offset = GetGridOffset(CurrentDirection);
+    FPacGridPosition const ExitTile(CurrentGridPosition.X ,
+                                    CurrentGridPosition.Y );
+
+    FVector const GoalWorldPosition = bCrossingTunnel
+                                          ? Maze->GridToWorldUnchecked(ExitTile)
+                                          : Maze->GridToWorld(TargetGridPosition);
 
     FVector const CurrentWorldPosition = UpdatedComponent->GetComponentLocation();
 
-    FVector const ToTarget = TargetWorldPosition - CurrentWorldPosition;
+    FVector const ToGoal = GoalWorldPosition - CurrentWorldPosition;
 
-    float const DistanceToTarget = ToTarget.Size();
+    float const DistanceToGoal = ToGoal.Size();
 
-    if (DistanceToTarget <= KINDA_SMALL_NUMBER || MaxDistance >= DistanceToTarget)
+    if (DistanceToGoal <= KINDA_SMALL_NUMBER || MaxDistance >= DistanceToGoal)
     {
+        float const LeftOver = FMath::Max(MaxDistance - DistanceToGoal, 0.0f);
+
+        if (bCrossingTunnel)
+        {
+            // Left the map. Reappear one tile outside the opposite edge and
+            // carry the leftover distance into the walk to the target tile.
+            bCrossingTunnel = false;
+
+            FPacGridPosition const EntryTile(TargetGridPosition.X ,
+                                             TargetGridPosition.Y );
+
+            UpdatedComponent->SetWorldLocation(
+                Maze->GridToWorldUnchecked(EntryTile));
+
+            return LeftOver;
+        }
+
         // Arrive exactly on the tile centre and hand back what is left.
-        UpdatedComponent->SetWorldLocation(TargetWorldPosition);
+        UpdatedComponent->SetWorldLocation(GoalWorldPosition);
 
         CurrentGridPosition = TargetGridPosition;
         OnGridPositionChanged.Broadcast(CurrentGridPosition);
 
-        return FMath::Max(MaxDistance - DistanceToTarget, 0.0f);
+        return LeftOver;
     }
 
-    FVector const MovementDelta = ToTarget.GetSafeNormal() * MaxDistance;
+    FVector const MovementDelta = ToGoal.GetSafeNormal() * MaxDistance;
 
     FHitResult Hit;
 
@@ -213,6 +245,7 @@ void UPacGridMovementComponent::InitializeMaze(APacMaze* InMaze)
 
     CurrentGridPosition = Maze->GetPlayerStart();
     TargetGridPosition  = CurrentGridPosition;
+    bCrossingTunnel     = false;
 
     InputQueue.Reset();
     CurrentDirection = EPacDirection::None;

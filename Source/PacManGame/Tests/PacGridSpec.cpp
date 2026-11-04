@@ -485,6 +485,165 @@ void FPacGridSpec::Define()
                         TestTrue(TEXT("Up wins the tie"), Step == EPacDirection::Up);
                     });
              });
+
+    // ------------------------------------------------------------------
+    Describe("Tunnels",
+             [this]()
+             {
+                 // The tunnel row is open at both ends of the grid.
+                 constexpr TCHAR const* TunnelLayout = TEXT(
+                     "#####\n"
+                     "-----\n"
+                     "#####");
+                 FIntPoint const TunnelSize(5, 3);
+
+                 It("wraps from the left edge to the right edge and back",
+                    [this, TunnelLayout, TunnelSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(TunnelLayout, TunnelSize);
+
+                        FPacGridPosition Neighbor;
+
+                        TestTrue(TEXT("left from the left edge"),
+                                 Grid.TryGetNeighborWrapping(FPacGridPosition(0, 1),
+                                                             EPacDirection::Left,
+                                                             Neighbor));
+                        TestTrue(TEXT("arrives at the right edge"),
+                                 Neighbor == FPacGridPosition(4, 1));
+
+                        TestTrue(TEXT("right from the right edge"),
+                                 Grid.TryGetNeighborWrapping(FPacGridPosition(4, 1),
+                                                             EPacDirection::Right,
+                                                             Neighbor));
+                        TestTrue(TEXT("arrives at the left edge"),
+                                 Neighbor == FPacGridPosition(0, 1));
+                    });
+
+                 It("behaves like TryGetNeighbor away from the edge",
+                    [this, TunnelLayout, TunnelSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(TunnelLayout, TunnelSize);
+
+                        FPacGridPosition Neighbor;
+
+                        TestTrue(TEXT("inside the grid"),
+                                 Grid.TryGetNeighborWrapping(FPacGridPosition(2, 1),
+                                                             EPacDirection::Right,
+                                                             Neighbor));
+                        TestTrue(TEXT("plain next tile"),
+                                 Neighbor == FPacGridPosition(3, 1));
+                    });
+
+                 It("never wraps in plain TryGetNeighbor",
+                    [this, TunnelLayout, TunnelSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(TunnelLayout, TunnelSize);
+
+                        FPacGridPosition Neighbor;
+
+                        TestFalse(TEXT("left of the grid"),
+                                  Grid.TryGetNeighbor(FPacGridPosition(0, 1),
+                                                      EPacDirection::Left,
+                                                      Neighbor));
+                    });
+
+                 It("does not leave through a wall on the edge",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(RingLayout, RingSize);
+
+                        FPacGridPosition Neighbor;
+
+                        // (0,0) is a wall, so nothing leaves through it.
+                        TestFalse(TEXT("wall corner"),
+                                  Grid.TryGetNeighborWrapping(FPacGridPosition(0, 0),
+                                                              EPacDirection::Left,
+                                                              Neighbor));
+                        // Inside the grid it is the plain neighbour (here a wall);
+                        // like TryGetNeighbor, the caller checks IsWalkable.
+                        TestTrue(TEXT("inside the grid"),
+                                 Grid.TryGetNeighborWrapping(FPacGridPosition(1, 1),
+                                                             EPacDirection::Left,
+                                                             Neighbor));
+                        TestFalse(TEXT("that neighbour is not walkable"),
+                                  Grid.IsWalkable(Neighbor));
+                    });
+
+                 It("does not wrap onto a wall on the far side",
+                    [this]()
+                    {
+                        // Open on the left, wall on the right.
+                        FPacGrid Grid = MakeGrid(TEXT("#####\n"
+                                                      "----#\n"
+                                                      "#####"),
+                                                 FIntPoint(5, 3));
+
+                        FPacGridPosition Neighbor;
+
+                        TestFalse(TEXT("blocked by the far wall"),
+                                  Grid.TryGetNeighborWrapping(FPacGridPosition(0, 1),
+                                                              EPacDirection::Left,
+                                                              Neighbor));
+                    });
+
+                 It("wraps vertically too",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(TEXT("#-#\n"
+                                                      "#-#\n"
+                                                      "#-#"),
+                                                 FIntPoint(3, 3));
+
+                        FPacGridPosition Neighbor;
+
+                        TestTrue(TEXT("up from the top row"),
+                                 Grid.TryGetNeighborWrapping(FPacGridPosition(1, 2),
+                                                             EPacDirection::Up,
+                                                             Neighbor));
+                        TestTrue(TEXT("arrives at the bottom row"),
+                                 Neighbor == FPacGridPosition(1, 0));
+                    });
+
+                 It("recognises a tunnel step",
+                    [this]()
+                    {
+                        TestTrue(TEXT("edge to edge"),
+                                 FPacGrid::IsWrapStep(FPacGridPosition(0, 1),
+                                                      FPacGridPosition(4, 1)));
+                        TestFalse(TEXT("normal step"),
+                                  FPacGrid::IsWrapStep(FPacGridPosition(1, 1),
+                                                       FPacGridPosition(2, 1)));
+                    });
+
+                 It("lets path finding use the tunnel as the shortest way",
+                    [this]()
+                    {
+                        // The middle is a wall: the only route is through the
+                        // tunnel (left from (1,1) and out of the right edge).
+                        FPacGrid Grid = MakeGrid(TEXT("#######\n"
+                                                      "--###--\n"
+                                                      "#######"),
+                                                 FIntPoint(7, 3));
+
+                        EPacDirection Step = EPacDirection::None;
+
+                        TestTrue(TEXT("route exists"),
+                                 Grid.FindFirstStep(FPacGridPosition(1, 1),
+                                                    FPacGridPosition(6, 1),
+                                                    EPacDirection::None,
+                                                    Step));
+                        TestTrue(TEXT("first step is Left"),
+                                 Step == EPacDirection::Left);
+
+                        TestTrue(TEXT("and back again"),
+                                 Grid.FindFirstStep(FPacGridPosition(5, 1),
+                                                    FPacGridPosition(0, 1),
+                                                    EPacDirection::None,
+                                                    Step));
+                        TestTrue(TEXT("first step is Right"),
+                                 Step == EPacDirection::Right);
+                    });
+             });
 }
 
 #endif  // WITH_DEV_AUTOMATION_TESTS

@@ -4,6 +4,12 @@
 
 namespace
 {
+// Maps any integer onto 0..Count-1 (also for negative values).
+int32 WrapIndex(int32 const Value, int32 const Count)
+{
+    return ((Value % Count) + Count) % Count;
+}
+
 // Order matters: it is the tie-break order of FindFirstStep.
 constexpr EPacDirection AllDirections[] = {EPacDirection::Up,
                                            EPacDirection::Down,
@@ -161,6 +167,40 @@ bool FPacGrid::IsWalkable(FPacGridPosition const & Position) const
     return Tiles[GetIndex(Position)] != EPacTileType::Wall;
 }
 
+bool FPacGrid::IsWrapStep(FPacGridPosition const & From, FPacGridPosition const & To)
+{
+    return FMath::Abs(From.X - To.X) > 1 || FMath::Abs(From.Y - To.Y) > 1;
+}
+
+bool FPacGrid::TryGetNeighborWrapping(FPacGridPosition const & Position,
+                                      EPacDirection const      Direction,
+                                      FPacGridPosition & OutNeighbor) const
+{
+    if (TryGetNeighbor(Position, Direction, OutNeighbor))
+    {
+        return true;
+    }
+
+    // Off the edge: only an open tile may leave, and only onto an open tile.
+    if (Size.X <= 0 || Size.Y <= 0 || !IsWalkable(Position))
+    {
+        return false;
+    }
+
+    FPacGridPosition const Outside = GetNeighbor(Position, Direction);
+    FPacGridPosition const Wrapped(WrapIndex(Outside.X, Size.X),
+                                   WrapIndex(Outside.Y, Size.Y));
+
+    if (!IsWalkable(Wrapped))
+    {
+        return false;
+    }
+
+    OutNeighbor = Wrapped;
+    return true;
+}
+
+
 bool FPacGrid::TryGetNeighbor(FPacGridPosition const & Position,
                               EPacDirection const      Direction,
                               FPacGridPosition &       OutNeighbor) const
@@ -245,7 +285,8 @@ bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
 
             FPacGridPosition Next;
 
-            if (!TryGetNeighbor(Current, Direction, Next) || !IsWalkable(Next))
+            if (!TryGetNeighborWrapping(Current, Direction, Next) ||
+                !IsWalkable(Next))
             {
                 continue;
             }

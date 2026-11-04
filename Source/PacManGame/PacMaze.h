@@ -34,13 +34,22 @@ public:
     void    SetTile(FPacGridPosition const & Position, EPacTileType TileType);
     bool    IsWalkable(FPacGridPosition const & Position) const;
     FVector GridToWorld(FPacGridPosition const & Position) const;
+    // Also accepts positions outside the grid (the tile just beyond a tunnel).
+    FVector GridToWorldUnchecked(FPacGridPosition const & Position) const;
     FPacGridPosition WorldToGrid(FVector const & WorldPosition) const;
     FIntPoint        GetGridSize() const;
     float            GetTileSize() const;
-    bool             TryGetNeighbor(FPacGridPosition const & Position,
-                                    EPacDirection            Direction,
-                                    FPacGridPosition &       OutNeighbor) const;
+
+    bool TryGetNeighbor(FPacGridPosition const & Position,
+                        EPacDirection            Direction,
+                        FPacGridPosition &       OutNeighbor) const;
+
+    // Same as TryGetNeighbor, plus the tunnel (see FPacGrid).
+    bool TryGetNeighborWrapping(FPacGridPosition const & Position,
+                                EPacDirection            Direction,
+                                FPacGridPosition &       OutNeighbor) const;
     bool TryGetTile(FPacGridPosition const & Position, EPacTileType & OutTile) const;
+
     void                             DrawDebugMaze() const;  // DEBUG_DRAW
     FPacGridPosition                 GetPlayerStart() const;
     TArray<FPacGridPosition> const & GetGhostStarts() const;

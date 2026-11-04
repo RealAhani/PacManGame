@@ -183,9 +183,13 @@ bool APacMaze::IsWalkable(FPacGridPosition const & Position) const
 FVector APacMaze::GridToWorld(FPacGridPosition const & Position) const
 {
     check(IsValidGridPosition(Position));
+    return GridToWorldUnchecked(Position);
+}
 
-    FVector const LocalPosition((static_cast<float>(Position.X) + 0.5f) * TileSize,
-                                (static_cast<float>(Position.Y) + 0.5f) * TileSize,
+FVector APacMaze::GridToWorldUnchecked(FPacGridPosition const & Position) const
+{
+    FVector const LocalPosition((static_cast<float>(Position.X)) * TileSize,
+                                (static_cast<float>(Position.Y)) * TileSize,
                                 0.0f);
 
     return GetActorTransform().TransformPosition(LocalPosition);
@@ -211,6 +215,14 @@ float APacMaze::GetTileSize() const
 {
     return TileSize;
 }
+
+bool APacMaze::TryGetNeighborWrapping(FPacGridPosition const & Position,
+                                      EPacDirection const      Direction,
+                                      FPacGridPosition & OutNeighbor) const
+{
+    return Grid.TryGetNeighborWrapping(Position, Direction, OutNeighbor);
+}
+
 
 bool APacMaze::TryGetNeighbor(FPacGridPosition const & Position,
                               EPacDirection const      Direction,
@@ -257,7 +269,7 @@ void APacMaze::DrawDebugMaze() const
             }
             else if (Tile == EPacTileType::Pellet)
             {
-                DrawDebugPoint(GetWorld(), WorldPosition, 10.0f, FColor::Yellow, true, -1.0f);
+                // DrawDebugPoint(GetWorld(), WorldPosition, 10.0f, FColor::Yellow, true, -1.0f);
             }
         }
     }

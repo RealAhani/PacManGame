@@ -51,6 +51,11 @@ private:
     // so the caller can carry it into the next tile.
     float MoveTowardTarget(float MaxDistance);
 
+    // True while the current move is a tunnel step and Pac-Man / the ghost has
+    // not yet left the map on its way to the other side.
+    bool bCrossingTunnel = false;
+
+
     UPROPERTY(EditInstanceOnly, Category = "Grid Movement")
     TObjectPtr<APacMaze> Maze;
 
