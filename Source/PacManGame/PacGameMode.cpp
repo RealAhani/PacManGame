@@ -219,6 +219,7 @@ void APacGameMode::HandleAllPelletsConsumed()
     SetGameState(EPacGameState::LevelComplete);
     SetActorsMovementEnabled(false);
     UE_LOG(LogPacMan, Log, TEXT("PAC: All pellets consumed. Level complete."));
+    OnLevelCompelet.Broadcast();
 }
 
 APacGhostManager* APacGameMode::GetGhostManager() const

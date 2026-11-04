@@ -32,6 +32,14 @@ void UPacHUDWidget::ShowGameOver()
     }
 }
 
+void UPacHUDWidget::ShowWinning()
+{
+    if (WinningText != nullptr)
+    {
+        WinningText->SetVisibility(ESlateVisibility::HitTestInvisible);
+    }
+}
+
 void UPacHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
@@ -39,5 +47,9 @@ void UPacHUDWidget::NativeConstruct()
     if (GameOverText != nullptr)
     {
         GameOverText->SetVisibility(ESlateVisibility::Collapsed);
+    }
+    if (WinningText != nullptr)
+    {
+        WinningText->SetVisibility(ESlateVisibility::Collapsed);
     }
 }

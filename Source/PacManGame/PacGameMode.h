@@ -26,6 +26,7 @@ enum class EPacGameState : uint8
 };
 
 DECLARE_MULTICAST_DELEGATE(FOnPacGameOver);
+DECLARE_MULTICAST_DELEGATE(FOnPacLevelCompelet);
 
 UCLASS()
 class PACMANGAME_API APacGameMode : public AGameModeBase
@@ -44,7 +45,8 @@ public:
     {
         return PacManGameState;
     }
-    FOnPacGameOver OnGameOver;
+    FOnPacGameOver      OnGameOver;
+    FOnPacLevelCompelet OnLevelCompelet;
 
 private:
 

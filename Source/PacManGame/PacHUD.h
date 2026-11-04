@@ -22,6 +22,7 @@ private:
     void HandleScoreChanged(int32 Score);
     void HandleLivesChanged(int32 Lives);
     void HandleGameOver();
+    void HandleLevelCompelet();
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UPacHUDWidget> HUDWidgetClass;

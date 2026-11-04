@@ -60,6 +60,7 @@ void APacHUD::BeginPlay()
     if (APacGameMode* GameMode = GetWorld()->GetAuthGameMode<APacGameMode>())
     {
         GameMode->OnGameOver.AddUObject(this, &APacHUD::HandleGameOver);
+        GameMode->OnLevelCompelet.AddUObject(this, &APacHUD::HandleLevelCompelet);
     }
 }
 
@@ -76,6 +77,14 @@ void APacHUD::HandleGameOver()
     if (HUDWidget != nullptr)
     {
         HUDWidget->ShowGameOver();
+    }
+}
+
+void APacHUD::HandleLevelCompelet()
+{
+    if (HUDWidget != nullptr)
+    {
+        HUDWidget->ShowWinning();
     }
 }
 

@@ -19,6 +19,7 @@ public:
 
     void SetLives(int32 Lives);
     void ShowGameOver();
+    void ShowWinning();
 
 protected:
 
@@ -36,4 +37,8 @@ private:
     // Optional: a TextBlock named GameOverText, shown when the game ends.
     UPROPERTY(meta = (BindWidgetOptional))
     TObjectPtr<UTextBlock> GameOverText;
+
+    // Optional: a TextBlock named GameOverText, shown when the game ends.
+    UPROPERTY(meta = (BindWidgetOptional))
+    TObjectPtr<UTextBlock> WinningText;
 };
