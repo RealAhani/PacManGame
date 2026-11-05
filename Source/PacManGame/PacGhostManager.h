@@ -82,7 +82,8 @@ private:
     EPacGhostBehaviorMode GetBaseMode() const;
     void                  ApplyBaseMode();
     void                  AdvanceSchedule(float DeltaSeconds);
-    void                  RestartSchedule();
+    void                  RestartSchedule(int32 StartWave = 1);
+    int32                 FindSchedulePhaseForWave(int32 Wave) const;
     void                  EndFrightened();
     void                  ReviveArrivedGhosts();
     void                  SetStateTreesPaused(bool bPaused);
@@ -96,6 +97,7 @@ private:
     void HandleScatterRoundStarted();
     void ReleaseGhost(int32 GhostIndex);
     void ArmWaveClock();
+    void TickReleases(float DeltaSeconds);
 
 
     // Scatter / Chase timeline. Paused while ghosts are frightened.
@@ -116,6 +118,11 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Ghosts|Schedule")
     bool bUseStateTree = true;
 
+    // After a death the next ghosts leave the house one after another, this
+    // many seconds apart, instead of all in the same frame.
+    UPROPERTY(EditDefaultsOnly, Category = "Ghosts|House", meta = (ClampMin = "0"))
+    float ReleaseStaggerSeconds = 0.8f;
+
     // Draws each ghost's current mode above it (compiled out in Shipping).
     UPROPERTY(EditAnywhere, Category = "Ghosts|Debug")
     bool bShowDebugModes = true;
@@ -130,8 +137,19 @@ private:
     // the Ready pause the round timers must not be running yet.
     bool bStateTreesNeedStart = false;
 
-    // Counts Scatter rounds (waves) since play began. Ignored until play has
-    // begun (armed), so resets and spawning do not release ghosts.
+    // The current wave (one Scatter round). It is NOT reset when the player
+    // dies: the new life starts at the beginning of the same wave and that
+    // many ghosts leave the house again. Level reload resets it.
+    // Rounds are ignored until play has begun (armed), so resets and spawning
+    // do not release ghosts.
     int32 WaveCount       = 0;
     bool  bWaveClockArmed = false;
+
+    // true after a death: the first Scatter round of the new life is the
+    // start of wave WaveCount again, not a new wave.
+    bool bResumingWave = false;
+
+    // Ghost indices still waiting to be let out (see ReleaseStaggerSeconds).
+    TArray<int32> PendingReleases;
+    float         ReleaseCooldown = 0.0f;
 };

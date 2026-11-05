@@ -7,6 +7,7 @@
 #include "DrawDebugHelpers.h"
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 #include "PacMazeDataAsset.h"
 // clang-format on
@@ -20,10 +21,18 @@ APacMaze::APacMaze()
 
     SetRootComponent(BaseComponent);
 
+
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(
+        TEXT("SpringArm"));
+    SpringArmComponent->SetupAttachment(GetRootComponent());
+    SpringArmComponent->bUsePawnControlRotation = false;
+
+
     CameraComponent = CreateDefaultSubobject<UCameraComponent>(
         TEXT("CameraComponent"));
 
-    CameraComponent->SetupAttachment(BaseComponent);
+    CameraComponent->SetupAttachment(SpringArmComponent,
+                                     USpringArmComponent::SocketName);
     // CameraComponent->ProjectionMode = ECameraPrioectionMode::Orthographic;
 
     // CameraComponent->OrthoWidth = 3200.0f;

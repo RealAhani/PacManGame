@@ -544,26 +544,39 @@ bool UPacGhostDecisionComponent::ChooseDirectionInHouse()
 
     FPacGridPosition const Current = MovementComponent->GetCurrentGridPosition();
 
-    auto const CollectHouseDirections =
-        [this, &Current](TArray<EPacDirection> & Out,
-                         EPacDirection const     First,
-                         EPacDirection const     Second)
-    {
-        for (EPacDirection const Direction : {First, Second})
-        {
-            if (Maze->IsGhostHouseTile(GetNeighbor(Current, Direction)))
-            {
-                Out.Add(Direction);
-            }
-        }
-    };
+    EPacDirection const Opposite = GetOppositeDirection(
+        MovementComponent->GetTravelDirection());
 
+    EPacDirection const Directions[] = {EPacDirection::Up,
+                                        EPacDirection::Down,
+                                        EPacDirection::Left,
+                                        EPacDirection::Right};
+
+    // Wander freely: any house tile around, in all four directions. Turning
+    // straight back is the last choice, so the ghost drifts around the room
+    // instead of bouncing between two tiles.
     TArray<EPacDirection> Options;
-    CollectHouseDirections(Options, EPacDirection::Up, EPacDirection::Down);
+    bool                  bCanReverse = false;
 
-    if (Options.IsEmpty())
+    for (EPacDirection const Direction : Directions)
     {
-        CollectHouseDirections(Options, EPacDirection::Left, EPacDirection::Right);
+        if (!Maze->IsGhostHouseTile(GetNeighbor(Current, Direction)))
+        {
+            continue;
+        }
+
+        if (Direction == Opposite)
+        {
+            bCanReverse = true;
+            continue;
+        }
+
+        Options.Add(Direction);
+    }
+
+    if (Options.IsEmpty() && bCanReverse)
+    {
+        Options.Add(Opposite);
     }
 
     if (Options.IsEmpty())

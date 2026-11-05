@@ -12,6 +12,7 @@
 #include "PacMazeDataAsset.h"
 
 #include "DrawDebugHelpers.h"
+#include "Engine/Engine.h"
 
 // clang-format on
 
@@ -58,6 +59,7 @@ void APacGhostManager::Tick(float const DeltaSeconds)
     }
 
     ReviveArrivedGhosts();
+    TickReleases(DeltaSeconds);
 
     if (FrightenedTimeLeft > 0.0f)
     {
@@ -275,13 +277,42 @@ void APacGhostManager::ApplyBaseMode()
     }
 }
 
-void APacGhostManager::RestartSchedule()
+// The code schedule starts at the first phase of the given wave (its Scatter).
+void APacGhostManager::RestartSchedule(int32 const StartWave)
 {
-    PhaseIndex = 0;
-    PhaseTimeLeft = ModeSchedule.IsValidIndex(0) ? ModeSchedule[0].Seconds : 0.0f;
+    PhaseIndex         = FindSchedulePhaseForWave(StartWave);
+    PhaseTimeLeft      = ModeSchedule.IsValidIndex(PhaseIndex)
+                             ? ModeSchedule[PhaseIndex].Seconds
+                             : 0.0f;
     FrightenedTimeLeft = 0.0f;
     GhostsEatenInChain = 0;
 }
+
+// Wave N is the N-th Scatter phase of ModeSchedule. Past the last one, the
+// last Scatter phase is used.
+int32 APacGhostManager::FindSchedulePhaseForWave(int32 const Wave) const
+{
+    int32 Found       = 0;
+    int32 ScatterSeen = 0;
+
+    for (int32 Index = 0; Index < ModeSchedule.Num(); ++Index)
+    {
+        if (ModeSchedule[Index].Mode != EPacGhostBehaviorMode::Scatter)
+        {
+            continue;
+        }
+
+        Found = Index;
+
+        if (++ScatterSeen >= Wave)
+        {
+            break;
+        }
+    }
+
+    return Found;
+}
+
 
 void APacGhostManager::AdvanceSchedule(float const DeltaSeconds)
 {
@@ -475,11 +506,16 @@ void APacGhostManager::ResetGhosts()
     check(Maze);
     check(Ghosts.Num() == GhostStartPositions.Num());
 
-    RestartSchedule();
+    // The wave is kept. The new life starts at the beginning of that wave.
+    int32 const StartWave = FMath::Max(1, WaveCount);
 
-    // Waves count again from the first one; ignore rounds until play begins.
+    RestartSchedule(StartWave);
+
+    // Ignore rounds until play begins.
     bWaveClockArmed = false;
-    WaveCount       = -2;
+    bResumingWave   = WaveCount > 0;
+    PendingReleases.Reset();
+    ReleaseCooldown = 0.0f;
 
 
     for (int32 Index = 0; Index < Ghosts.Num(); ++Index)
@@ -505,6 +541,7 @@ void APacGhostManager::ResetGhosts()
         Decision->ConfigureHouse(Maze->IsGhostHouseTile(GhostStartPositions[Index]),
                                  Maze->GetGhostHouseExit());
         Decision->ResetWaveTracking();
+        Decision->SetStartWave(StartWave);
 
         // A new life starts at the first round (Scatter). Remember it as the
         // base mode, then leave Frightened / Eaten if the ghost was in them.
@@ -590,6 +627,16 @@ void APacGhostManager::RestartStateTrees()
 void APacGhostManager::DrawDebugModes() const
 {
 #if ENABLE_DRAW_DEBUG
+    if (GEngine != nullptr)
+    {
+        // Fixed key: the message is replaced every frame, not stacked.
+        GEngine->AddOnScreenDebugMessage(static_cast<uint64>(0x5041'5701),
+                                         0.0f,
+                                         FColor::Yellow,
+                                         FString::Printf(TEXT("Wave %d"),
+                                                         FMath::Max(1, WaveCount)));
+    }
+
     UEnum const* const ModeEnum = StaticEnum<EPacGhostBehaviorMode>();
 
     for (APacGhostPawn const* Ghost : Ghosts)
@@ -654,8 +701,6 @@ void APacGhostManager::DrawDebugModes() const
 
 void APacGhostManager::ArmWaveClock()
 {
-    WaveCount = 0;
-
     for (APacGhostPawn* Ghost : Ghosts)
     {
         if (IsValid(Ghost) && Ghost->GetGhostDecisionComponent() != nullptr)
@@ -665,6 +710,25 @@ void APacGhostManager::ArmWaveClock()
     }
 
     bWaveClockArmed = true;
+
+    // Resuming after a death in wave N: ghosts 0..N-1 would be out by now, so
+    // they leave again, one after another.
+    PendingReleases.Reset();
+    ReleaseCooldown = 0.0f;
+
+    for (int32 Index = 0; Index < WaveCount; ++Index)
+    {
+        PendingReleases.Add(Index);
+    }
+
+    if (WaveCount > 0)
+    {
+        UE_LOG(LogPacMan,
+               Log,
+               TEXT("PAC: Resuming wave %d, releasing %d ghost(s)."),
+               WaveCount,
+               WaveCount);
+    }
 }
 
 // Wave 1 lets ghost 0 out, wave 2 ghost 1, and so on.
@@ -675,12 +739,42 @@ void APacGhostManager::HandleScatterRoundStarted()
         return;
     }
 
+    // First round after a death: the same wave starts again. Its ghosts are
+    // already queued by ArmWaveClock().
+    if (bResumingWave)
+    {
+        bResumingWave = false;
+
+        UE_LOG(LogPacMan, Log, TEXT("PAC: Wave %d starts again."), WaveCount);
+        return;
+    }
+
     ++WaveCount;
 
     UE_LOG(LogPacMan, Log, TEXT("PAC: Wave %d starts."), WaveCount);
 
     ReleaseGhost(WaveCount - 1);
 }
+
+void APacGhostManager::TickReleases(float const DeltaSeconds)
+{
+    if (PendingReleases.IsEmpty())
+    {
+        return;
+    }
+
+    ReleaseCooldown -= DeltaSeconds;
+
+    if (ReleaseCooldown > 0.0f)
+    {
+        return;
+    }
+
+    ReleaseGhost(PendingReleases[0]);
+    PendingReleases.RemoveAt(0);
+    ReleaseCooldown = ReleaseStaggerSeconds;
+}
+
 
 void APacGhostManager::ReleaseGhost(int32 const GhostIndex)
 {

@@ -13,6 +13,7 @@
 class UPacMazeDataAsset;
 class USceneComponent;
 class UCameraComponent;
+class USpringArmComponent;
 
 /**
  * The Unreal side of the maze: world positions, camera and debug drawing.
@@ -101,10 +102,13 @@ private:
     float TileSize = 100.0f;
 
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
+    UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<USceneComponent> BaseComponent;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
+    UPROPERTY(EditAnywhere, Category = "Components")
+    TObjectPtr<USpringArmComponent> SpringArmComponent;
+
+    UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComponent;
 
 public:

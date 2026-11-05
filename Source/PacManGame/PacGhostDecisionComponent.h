@@ -105,6 +105,19 @@ public:
     // Forget which Scatter/Chase request came last, so the next Scatter request
     // counts as a new wave (see OnScatterRoundStarted).
     void ResetWaveTracking();
+    // The wave this life starts in (1 = first wave). After a death the manager
+    // sets it to the wave the player died in, so the StateTree can skip the
+    // earlier Scatter/Chase rounds (see FPacStartWaveCondition).
+    void SetStartWave(int32 InStartWave)
+    {
+        StartWave = FMath::Max(1, InStartWave);
+    }
+
+    int32 GetStartWave() const
+    {
+        return StartWave;
+    }
+
 
     FOnScatterRoundStarted OnScatterRoundStarted;
 
@@ -189,4 +202,5 @@ private:
     FPacGridPosition      HouseExitPosition;
     bool                  bHasHomePosition            = false;
     bool                  bAllowReverseOnNextDecision = false;
+    int32                 StartWave                   = 1;
 };
