@@ -6,6 +6,9 @@
 
 #include "PacGridTypes.h"
 #include "PacGhostDecisionComponent.h"
+#include "PacGhostPawn.h"
+
+#include "Dev/PacDevConfig.h"
 
 #include "PacGhostManager.generated.h"
 // clang-format on
@@ -59,6 +62,19 @@ public:
     // Puts every ghost back on its start tile.
     void ResetGhosts();
 
+#if PAC_DEV()
+    void KillAllGhost()
+    {
+        for (APacGhostPawn* Ghost : Ghosts)
+        {
+            if (IsValid(Ghost))
+            {
+                Ghost->KillGhost();
+            }
+        }
+    }
+
+#endif
 
 private:
 

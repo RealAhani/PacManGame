@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "PacGridTypes.h"
+#include "Dev/PacDevConfig.h"
+
 #include "PacPlayerPawn.generated.h"
 // clang-format on
 
@@ -27,6 +29,17 @@ public:
     void                       SetMovementEnabled(bool bEnabled);
     UPacGridMovementComponent* GetGridMovementComponent() const;
 
+#if PAC_DEV()
+    void SetGodMode(bool bEnabled)
+    {
+        bGodMode = bEnabled;
+    }
+    bool GetGodMode() const
+    {
+        return bGodMode;
+    }
+#endif
+
 private:
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -34,4 +47,8 @@ private:
 
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UPacGridMovementComponent> GridMovementComponent;
+
+#if PAC_DEV()
+    bool bGodMode = false;
+#endif
 };

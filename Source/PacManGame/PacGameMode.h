@@ -5,6 +5,7 @@
 // clang-format off
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Dev/PacDevConfig.h"
 #include "PacGameMode.generated.h"
 // clang-format on
 
@@ -46,8 +47,19 @@ public:
         return PacManGameState;
     }
     void                RestartLevel() const;
+    void                GoToNextLevel();
     FOnPacGameOver      OnGameOver;
     FOnPacLevelCompelet OnLevelCompelet;
+#if PAC_DEV()
+    void PacLose()
+    {
+        GameOver();
+    }
+    void PacWin()
+    {
+        HandleAllPelletsConsumed();
+    }
+#endif
 
 private:
 
@@ -65,6 +77,8 @@ private:
     void FinishDeath();
     void SetActorsMovementEnabled(bool bEnabled);
     void SetGameState(EPacGameState NewState);
+    void GameOver();
+
 
     // Number of lives at the start of a game.
     UPROPERTY(EditDefaultsOnly, Category = "Rules", meta = (ClampMin = "1"))

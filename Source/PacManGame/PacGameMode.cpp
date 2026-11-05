@@ -8,6 +8,7 @@
 #include "PacGhostManager.h"
 #include "PacPlayerPawn.h"
 #include "PacGridMovementComponent.h"
+
 #include "Logging/PacManLog.h"
 
 #include "Kismet/GameplayStatics.h"
@@ -119,9 +120,12 @@ bool APacGameMode::InitializeLevel()
     // ---- 4. pellets, score, level complete ----
     PelletManager->Initialize(Maze);
     PelletManager->BindToPlayerMovement(PlayerMovement);
+
     PelletManager->OnPelletConsumed.AddUObject(this, &APacGameMode::AddScoreToPlayer);
+
     PelletManager->OnPowerPelletConsumed
         .AddUObject(this, &APacGameMode::HandlePowerPelletConsumed);
+
     PelletManager->OnAllPelletsConsumed
         .AddUObject(this, &APacGameMode::HandleAllPelletsConsumed);
 
@@ -220,6 +224,8 @@ void APacGameMode::HandleAllPelletsConsumed()
     SetActorsMovementEnabled(false);
     UE_LOG(LogPacMan, Log, TEXT("PAC: All pellets consumed. Level complete."));
     OnLevelCompelet.Broadcast();
+
+    GoToNextLevel();
 }
 
 APacGhostManager* APacGameMode::GetGhostManager() const
@@ -247,6 +253,11 @@ void APacGameMode::CheckGhostCollision()
     {
         return;
     }
+#if PAC_DEV()
+    // true is invincible so we come back (UE_DEV)
+    if (PlayerPawn->GetGodMode())
+        return;
+#endif
 
     float const HitDistance = Maze->GetTileSize() * HitDistanceInTiles;
 
@@ -288,18 +299,7 @@ void APacGameMode::FinishDeath()
 
     if (PacPlayerState == nullptr || PacPlayerState->GetLives() <= 0)
     {
-        SetGameState(EPacGameState::GameOver);
-
-        UE_LOG(LogPacMan, Log, TEXT("PAC: Game over."));
-
-        OnGameOver.Broadcast();
-        GetWorldTimerManager()
-            .SetTimer(DeathTimerHandle,
-                      this,
-                      &APacGameMode::RestartLevel,
-                      FMath::Max(DeathPauseSeconds, KINDA_SMALL_NUMBER),
-                      false);
-        BeginReady();
+        GameOver();
         return;
     }
 
@@ -343,4 +343,30 @@ void APacGameMode::RestartLevel() const
 {
     FString const LevelName = UGameplayStatics::GetCurrentLevelName(this, true);
     UGameplayStatics::OpenLevel(this, FName(*LevelName));
+}
+
+void APacGameMode::GameOver()
+{
+    SetGameState(EPacGameState::GameOver);
+
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Game over."));
+
+    OnGameOver.Broadcast();
+    GetWorldTimerManager().SetTimer(DeathTimerHandle,
+                                    this,
+                                    &APacGameMode::RestartLevel,
+                                    FMath::Max(DeathPauseSeconds, KINDA_SMALL_NUMBER),
+                                    false);
+    BeginReady();
+}
+
+void APacGameMode::GoToNextLevel()
+{
+    // TODO: FIX-Me (Need to goto next level after win)
+    // Its Win now restart the level
+    GetWorldTimerManager().SetTimer(DeathTimerHandle,
+                                    this,
+                                    &APacGameMode::RestartLevel,
+                                    FMath::Max(DeathPauseSeconds, KINDA_SMALL_NUMBER),
+                                    false);
 }

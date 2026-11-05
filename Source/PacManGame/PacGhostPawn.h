@@ -5,6 +5,9 @@
 // clang-format off
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+
+#include "Dev/PacDevConfig.h"
+
 #include "PacGhostPawn.generated.h"
 // clang-format on
 
@@ -23,6 +26,13 @@ public:
     APacGhostPawn();
     UPacGhostMovementComponent* GetGhostMovementComponent() const;
     UPacGhostDecisionComponent* GetGhostDecisionComponent() const;
+#if PAC_DEV()
+    void KillGhost()
+    {
+        Destroy();
+    }
+#endif
+
 
 private:
 
