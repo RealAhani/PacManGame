@@ -29,10 +29,14 @@ public:
     // Sets default values for this actor's properties
     APacMaze();
     // -------------------- functions --------------------
-    bool         IsValidGridPosition(FPacGridPosition const & Position) const;
     EPacTileType GetTile(FPacGridPosition const & Position) const;
-    void    SetTile(FPacGridPosition const & Position, EPacTileType TileType);
-    bool    IsWalkable(FPacGridPosition const & Position) const;
+    void SetTile(FPacGridPosition const & Position, EPacTileType TileType);
+    bool IsValidGridPosition(FPacGridPosition const & Position) const;
+
+    // Walkable = not a wall and not the ghost house; pass true to allow the house.
+    bool    IsWalkable(FPacGridPosition const & Position,
+                       bool                     bAllowGhostHouse = false) const;
+    bool    IsGhostHouseTile(FPacGridPosition const & Position) const;
     FVector GridToWorld(FPacGridPosition const & Position) const;
     // Also accepts positions outside the grid (the tile just beyond a tunnel).
     FVector GridToWorldUnchecked(FPacGridPosition const & Position) const;
@@ -53,6 +57,7 @@ public:
     void                             DrawDebugMaze() const;  // DEBUG_DRAW
     FPacGridPosition                 GetPlayerStart() const;
     TArray<FPacGridPosition> const & GetGhostStarts() const;
+    FPacGridPosition                 GetGhostHouseExit() const;
     void                             InitializeRuntime();
     UCameraComponent*                GetCameraComponent() const;
 

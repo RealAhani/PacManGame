@@ -26,7 +26,11 @@ public:
     // Freezes / unfreezes movement (death pause, level complete, game over).
     void SetMovementEnabled(bool bEnabled);
     // 1 = normal. Frightened ghosts are slower, eaten ghosts faster.
-    void             SetSpeedMultiplier(float Multiplier);
+    void SetSpeedMultiplier(float Multiplier);
+
+    // Set by the decision component: true while the ghost may walk on ghost
+    // house tiles (inside / leaving / eaten and heading home).
+    void             SetCanEnterGhostHouse(bool bCanEnter);
     FPacGridPosition GetCurrentGridPosition() const;
     EPacDirection    GetTravelDirection() const;
     bool             IsMoving() const
@@ -77,4 +81,6 @@ private:
     bool bMovementEnabled = true;
 
     float SpeedMultiplier = 1.0f;
+
+    bool bCanEnterGhostHouse = false;
 };

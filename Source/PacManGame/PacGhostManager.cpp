@@ -173,6 +173,11 @@ void APacGhostManager::SpawnGhosts()
             continue;
         }
 
+        // Ghosts whose start tile is inside the ghost house wait there.
+        DecisionComponent->ConfigureHouse(Maze->IsGhostHouseTile(StartPosition),
+                                          Maze->GetGhostHouseExit());
+
+
         DecisionComponent->Initialize(Maze, MovementComponent);
 
         if (Index == 0)
@@ -221,6 +226,14 @@ void APacGhostManager::SpawnGhosts()
         }
 
         DecisionComponent->SetBehaviorMode(GetBaseMode());
+        // The first ghost is the wave clock: it tells the manager when a new
+        // Scatter round (a new wave) starts.
+        if (Ghosts.IsEmpty())
+        {
+            DecisionComponent->OnScatterRoundStarted
+                .AddUObject(this, &APacGhostManager::HandleScatterRoundStarted);
+        }
+
 
         Ghosts.Add(Ghost);
 
@@ -364,6 +377,13 @@ void APacGhostManager::ReviveArrivedGhosts()
             Ghost->GetGhostMovementComponent()->GetCurrentGridPosition() ==
                 GhostStartPositions[Index])
         {
+            // Back in the house: it comes straight out again. Do this before
+            // the mode changes, so the ghost already has a way out.
+            if (Maze->IsGhostHouseTile(GhostStartPositions[Index]))
+            {
+                Decision->StartLeavingHouse();
+            }
+
             // Still frightened globally? Come back frightened, else normal.
             if (FrightenedTimeLeft > 0.0f)
             {
@@ -427,7 +447,18 @@ void APacGhostManager::SetMovementEnabled(bool const bEnabled)
     if (bEnabled && bStateTreesNeedStart)
     {
         bStateTreesNeedStart = false;
-        RestartStateTrees();
+
+        // From now on every new Scatter round (wave) lets one ghost out.
+        ArmWaveClock();
+
+        if (bUseStateTree)
+        {
+            RestartStateTrees();
+        }
+        else
+        {
+            ApplyBaseMode();  // the first Scatter round starts right now
+        }
     }
 
     for (APacGhostPawn* Ghost : Ghosts)
@@ -445,6 +476,11 @@ void APacGhostManager::ResetGhosts()
     check(Ghosts.Num() == GhostStartPositions.Num());
 
     RestartSchedule();
+
+    // Waves count again from the first one; ignore rounds until play begins.
+    bWaveClockArmed = false;
+    WaveCount       = -2;
+
 
     for (int32 Index = 0; Index < Ghosts.Num(); ++Index)
     {
@@ -464,6 +500,11 @@ void APacGhostManager::ResetGhosts()
         }
 
         Movement->InitializeMaze(Maze, GhostStartPositions[Index]);
+
+        // Back into the house (if it started there), waiting for its wave.
+        Decision->ConfigureHouse(Maze->IsGhostHouseTile(GhostStartPositions[Index]),
+                                 Maze->GetGhostHouseExit());
+        Decision->ResetWaveTracking();
 
         // A new life starts at the first round (Scatter). Remember it as the
         // base mode, then leave Frightened / Eaten if the ghost was in them.
@@ -565,6 +606,15 @@ void APacGhostManager::DrawDebugModes() const
 
         FString Text = ModeEnum->GetNameStringByValue(static_cast<int64>(Mode));
 
+        if (Decision->GetHouseState() == EPacGhostHouseState::InHouse)
+        {
+            Text += TEXT(" [house]");
+        }
+        else if (Decision->GetHouseState() == EPacGhostHouseState::Leaving)
+        {
+            Text += TEXT(" [leaving]");
+        }
+
         FColor Color = FColor::White;
         switch (Mode)
         {
@@ -595,4 +645,60 @@ void APacGhostManager::DrawDebugModes() const
                         1.2f);
     }
 #endif
+}
+
+
+// ---------------------------------------------------------------------------
+// Ghost house waves
+// ---------------------------------------------------------------------------
+
+void APacGhostManager::ArmWaveClock()
+{
+    WaveCount = 0;
+
+    for (APacGhostPawn* Ghost : Ghosts)
+    {
+        if (IsValid(Ghost) && Ghost->GetGhostDecisionComponent() != nullptr)
+        {
+            Ghost->GetGhostDecisionComponent()->ResetWaveTracking();
+        }
+    }
+
+    bWaveClockArmed = true;
+}
+
+// Wave 1 lets ghost 0 out, wave 2 ghost 1, and so on.
+void APacGhostManager::HandleScatterRoundStarted()
+{
+    if (!bWaveClockArmed)
+    {
+        return;
+    }
+
+    ++WaveCount;
+
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Wave %d starts."), WaveCount);
+
+    ReleaseGhost(WaveCount - 1);
+}
+
+void APacGhostManager::ReleaseGhost(int32 const GhostIndex)
+{
+    if (!Ghosts.IsValidIndex(GhostIndex) || !IsValid(Ghosts[GhostIndex]))
+    {
+        return;
+    }
+
+    UPacGhostDecisionComponent* Decision = Ghosts[GhostIndex]->GetGhostDecisionComponent();
+
+    // A ghost that already started outside, or is out, is left alone.
+    if (Decision != nullptr && Decision->IsInHouse())
+    {
+        UE_LOG(LogPacMan,
+               Log,
+               TEXT("PAC: Releasing ghost %d from the house."),
+               GhostIndex);
+
+        Decision->StartLeavingHouse();
+    }
 }

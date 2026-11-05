@@ -30,6 +30,19 @@ enum class EPacGhostPersonality : uint8
     Clyde
 };
 
+// Where the ghost is relative to the ghost house. Independent of the behaviour
+// mode: a ghost waiting in the house is still "Scatter" underneath.
+UENUM(BlueprintType)
+enum class EPacGhostHouseState : uint8
+{
+    Outside,  // on the streets; the house door is closed to it
+    InHouse,  // waiting inside, bobbing up and down
+    Leaving   // walking to the house exit
+};
+
+// Fired when a new Scatter round is requested (the start of a wave).
+DECLARE_MULTICAST_DELEGATE(FOnScatterRoundStarted);
+
 
 // Lets a Blueprint react (change material, play a sound, ...) when the mode changes.
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPacGhostModeChanged,
@@ -70,6 +83,32 @@ public:
     // Call after the movement component was put back on its start tile.
     void Respawn();
 
+    // -------------------- ghost house --------------------
+    // Call before Initialize() and again on every reset. bStartInHouse: the
+    // ghost starts inside the house and waits to be released. ExitPosition: the
+    // street tile outside the door.
+    void ConfigureHouse(bool bStartInHouse, FPacGridPosition ExitPosition);
+
+    bool IsInHouse() const
+    {
+        return HouseState == EPacGhostHouseState::InHouse;
+    }
+
+    EPacGhostHouseState GetHouseState() const
+    {
+        return HouseState;
+    }
+
+    // Walk to the exit and go out. The door closes behind the ghost.
+    void StartLeavingHouse();
+
+    // Forget which Scatter/Chase request came last, so the next Scatter request
+    // counts as a new wave (see OnScatterRoundStarted).
+    void ResetWaveTracking();
+
+    FOnScatterRoundStarted OnScatterRoundStarted;
+
+
     UPROPERTY(BlueprintAssignable, Category = "Ghost AI")
     FPacGhostModeChanged OnModeChanged;
 
@@ -97,6 +136,11 @@ private:
     // Picks a random open direction, never reversing unless at a dead end.
     // Used for wandering modes and when the ghost is standing on its target.
     bool ChooseRandomDirection();
+    // Waiting in the house: wander up and down between house tiles.
+    bool ChooseDirectionInHouse();
+    // True if this ghost may walk on house tiles right now.
+    bool CanEnterHouse() const;
+    void UpdateHousePermission();
     bool IsDirectionWalkable(FPacGridPosition const & Position,
                              EPacDirection            Direction) const;
     void HandlePlayerGridPositionChanged(
@@ -136,7 +180,13 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Ghost AI", meta = (ClampMin = "0.1"))
     float EatenSpeedMultiplier = 2.0f;
 
-    FPacGridPosition HomePosition;
-    bool             bHasHomePosition            = false;
-    bool             bAllowReverseOnNextDecision = false;
+    UPROPERTY(VisibleInstanceOnly, Category = "Ghost AI")
+    EPacGhostHouseState HouseState = EPacGhostHouseState::Outside;
+
+    // The last Scatter/Chase mode asked for (by the StateTree or the schedule).
+    EPacGhostBehaviorMode LastRequestedHuntMode = EPacGhostBehaviorMode::None;
+    FPacGridPosition      HomePosition;
+    FPacGridPosition      HouseExitPosition;
+    bool                  bHasHomePosition            = false;
+    bool                  bAllowReverseOnNextDecision = false;
 };

@@ -35,6 +35,9 @@ bool TryParseTileCharacter(TCHAR const Character, EPacTileType & OutTile)
         case TEXT('o'):
             OutTile = EPacTileType::PowerPellet;
             return true;
+        case TEXT('H'):
+            OutTile = EPacTileType::GhostHouse;
+            return true;
 
         default:
             return false;
@@ -157,14 +160,28 @@ bool FPacGrid::TryGetTile(FPacGridPosition const & Position,
     return true;
 }
 
-bool FPacGrid::IsWalkable(FPacGridPosition const & Position) const
+bool FPacGrid::IsWalkable(FPacGridPosition const & Position,
+                          bool const               bAllowGhostHouse) const
 {
     if (!IsValidPosition(Position))
     {
         return false;
     }
 
-    return Tiles[GetIndex(Position)] != EPacTileType::Wall;
+    EPacTileType const Tile = Tiles[GetIndex(Position)];
+
+    if (Tile == EPacTileType::Wall)
+    {
+        return false;
+    }
+
+    return bAllowGhostHouse || Tile != EPacTileType::GhostHouse;
+}
+
+bool FPacGrid::IsGhostHouse(FPacGridPosition const & Position) const
+{
+    return IsValidPosition(Position) &&
+           Tiles[GetIndex(Position)] == EPacTileType::GhostHouse;
 }
 
 bool FPacGrid::IsWrapStep(FPacGridPosition const & From, FPacGridPosition const & To)
@@ -247,11 +264,13 @@ void FPacGrid::SetTile(FPacGridPosition const & Position, EPacTileType const Til
 bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
                              FPacGridPosition const & Target,
                              EPacDirection const      ForbiddenFirstStep,
-                             EPacDirection &          OutFirstStep) const
+                             EPacDirection &          OutFirstStep,
+                             bool const               bAllowGhostHouse) const
 {
     OutFirstStep = EPacDirection::None;
 
-    if (!IsWalkable(Start) || !IsWalkable(Target) || Start == Target)
+    if (!IsWalkable(Start, bAllowGhostHouse) ||
+        !IsWalkable(Target, bAllowGhostHouse) || Start == Target)
     {
         return false;
     }
@@ -286,7 +305,7 @@ bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
             FPacGridPosition Next;
 
             if (!TryGetNeighborWrapping(Current, Direction, Next) ||
-                !IsWalkable(Next))
+                !IsWalkable(Next, bAllowGhostHouse))
             {
                 continue;
             }
@@ -320,9 +339,10 @@ bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
 }
 
 bool FPacGrid::FindNearestWalkable(FPacGridPosition const & Desired,
-                                   FPacGridPosition &       OutPosition) const
+                                   FPacGridPosition &       OutPosition,
+                                   bool const bAllowGhostHouse) const
 {
-    if (IsWalkable(Desired))
+    if (IsWalkable(Desired, bAllowGhostHouse))
     {
         OutPosition = Desired;
         return true;
@@ -337,7 +357,7 @@ bool FPacGrid::FindNearestWalkable(FPacGridPosition const & Desired,
         {
             FPacGridPosition const Candidate(X, Y);
 
-            if (!IsWalkable(Candidate))
+            if (!IsWalkable(Candidate, bAllowGhostHouse))
             {
                 continue;
             }

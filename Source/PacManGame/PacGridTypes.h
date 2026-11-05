@@ -21,7 +21,10 @@ enum class EPacTileType : uint8
     Empty,
     Wall,
     Pellet,
-    PowerPellet
+    PowerPellet,
+    // Inside the ghost house. Only ghosts that are leaving it, waiting in it,
+    // or returning to it after being eaten may walk here. Never Pac-Man.
+    GhostHouse
 };
 
 USTRUCT(BlueprintType)

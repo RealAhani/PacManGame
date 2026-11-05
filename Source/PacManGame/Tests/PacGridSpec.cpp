@@ -644,6 +644,113 @@ void FPacGridSpec::Define()
                                  Step == EPacDirection::Right);
                     });
              });
+
+    // ------------------------------------------------------------------
+    Describe("GhostHouse",
+             [this]()
+             {
+                 // Row y=1 is the street, (3,2) is the door tile, y=3 is the room.
+                 constexpr TCHAR const* HouseLayout = TEXT(
+                     "#######\n"
+                     "#-----#\n"
+                     "###H###\n"
+                     "##HHH##\n"
+                     "#######");
+                 FIntPoint const HouseSize(7, 5);
+
+                 It("parses H as a ghost house tile",
+                    [this, HouseLayout, HouseSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(HouseLayout, HouseSize);
+
+                        TestTrue(TEXT("door tile is house"),
+                                 Grid.GetTile(FPacGridPosition(3, 2)) ==
+                                     EPacTileType::GhostHouse);
+                        TestTrue(TEXT("IsGhostHouse"),
+                                 Grid.IsGhostHouse(FPacGridPosition(2, 3)));
+                        TestFalse(TEXT("street is not house"),
+                                  Grid.IsGhostHouse(FPacGridPosition(3, 1)));
+                        TestEqual(TEXT("house tile count"),
+                                  Grid.CountTiles(EPacTileType::GhostHouse),
+                                  4);
+                    });
+
+                 It("is not walkable by default, only when the house is "
+                    "allowed",
+                    [this, HouseLayout, HouseSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(HouseLayout, HouseSize);
+
+                        FPacGridPosition const Room(3, 3);
+
+                        TestFalse(TEXT("default: closed"), Grid.IsWalkable(Room));
+                        TestTrue(TEXT("allowed: open"),
+                                 Grid.IsWalkable(Room, true));
+                        TestTrue(TEXT("street is always walkable"),
+                                 Grid.IsWalkable(FPacGridPosition(3, 1)));
+                        TestFalse(TEXT("walls stay closed even when allowed"),
+                                  Grid.IsWalkable(FPacGridPosition(0, 0), true));
+                    });
+
+                 It("keeps path finding out of the house unless allowed",
+                    [this, HouseLayout, HouseSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(HouseLayout, HouseSize);
+
+                        EPacDirection Step = EPacDirection::None;
+
+                        TestFalse(TEXT("street to room: no route by default"),
+                                  Grid.FindFirstStep(FPacGridPosition(3, 1),
+                                                     FPacGridPosition(3, 3),
+                                                     EPacDirection::None,
+                                                     Step));
+
+                        TestTrue(TEXT("street to room: route when allowed"),
+                                 Grid.FindFirstStep(FPacGridPosition(3, 1),
+                                                    FPacGridPosition(3, 3),
+                                                    EPacDirection::None,
+                                                    Step,
+                                                    true));
+                        TestTrue(TEXT("goes through the door (Y + 1 is Up)"),
+                                 Step == EPacDirection::Up);
+
+                        TestFalse(TEXT("room to street: no route by default"),
+                                  Grid.FindFirstStep(FPacGridPosition(3, 3),
+                                                     FPacGridPosition(3, 1),
+                                                     EPacDirection::None,
+                                                     Step));
+
+                        TestTrue(TEXT("room to street: route when allowed"),
+                                 Grid.FindFirstStep(FPacGridPosition(3, 3),
+                                                    FPacGridPosition(3, 1),
+                                                    EPacDirection::None,
+                                                    Step,
+                                                    true));
+                        TestTrue(TEXT("out through the door"),
+                                 Step == EPacDirection::Down);
+                    });
+
+                 It("resolves a target inside the house only when allowed",
+                    [this, HouseLayout, HouseSize]()
+                    {
+                        FPacGrid Grid = MakeGrid(HouseLayout, HouseSize);
+
+                        FPacGridPosition Resolved;
+
+                        TestTrue(TEXT("found by default"),
+                                 Grid.FindNearestWalkable(FPacGridPosition(3, 3),
+                                                          Resolved));
+                        TestTrue(TEXT("default: pushed out to the street"),
+                                 Resolved == FPacGridPosition(3, 1));
+
+                        TestTrue(TEXT("found when allowed"),
+                                 Grid.FindNearestWalkable(FPacGridPosition(3, 3),
+                                                          Resolved,
+                                                          true));
+                        TestTrue(TEXT("allowed: the tile itself"),
+                                 Resolved == FPacGridPosition(3, 3));
+                    });
+             });
 }
 
 #endif  // WITH_DEV_AUTOMATION_TESTS

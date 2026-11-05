@@ -89,6 +89,14 @@ private:
     void                  RestartStateTrees();
     void                  StopStateTrees();
     void                  DrawDebugModes() const;
+    //
+    // -------------------- ghost house / waves --------------------
+    // Called by the first ghost's decision component at the start of every
+    // Scatter round: wave N lets ghost N out of the house.
+    void HandleScatterRoundStarted();
+    void ReleaseGhost(int32 GhostIndex);
+    void ArmWaveClock();
+
 
     // Scatter / Chase timeline. Paused while ghosts are frightened.
     UPROPERTY(EditDefaultsOnly, Category = "Ghosts|Schedule")
@@ -121,4 +129,9 @@ private:
     // The trees are (re)started when play begins, not at spawn / reset: during
     // the Ready pause the round timers must not be running yet.
     bool bStateTreesNeedStart = false;
+
+    // Counts Scatter rounds (waves) since play began. Ignored until play has
+    // begun (armed), so resets and spawning do not release ghosts.
+    int32 WaveCount       = 0;
+    bool  bWaveClockArmed = false;
 };

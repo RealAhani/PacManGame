@@ -49,8 +49,56 @@ void UPacGhostDecisionComponent::Initialize(APacMaze* InMaze,
     MovementComponent->OnGridPositionChanged
         .AddUObject(this, &UPacGhostDecisionComponent::HandleGridPositionChanged);
 
+    UpdateHousePermission();
+
     ChooseDirection();
 }
+
+void UPacGhostDecisionComponent::ConfigureHouse(bool const bStartInHouse,
+                                                FPacGridPosition const ExitPosition)
+{
+    HouseState        = bStartInHouse ? EPacGhostHouseState::InHouse
+                                      : EPacGhostHouseState::Outside;
+    HouseExitPosition = ExitPosition;
+
+    UpdateHousePermission();
+}
+
+void UPacGhostDecisionComponent::StartLeavingHouse()
+{
+    HouseState = EPacGhostHouseState::Leaving;
+    UpdateHousePermission();
+
+    UE_LOG(LogPacMan, Log, TEXT("PAC: Ghost leaves the house."));
+
+    if (Maze != nullptr && MovementComponent != nullptr &&
+        !MovementComponent->IsMoving())
+    {
+        ChooseDirection();
+    }
+}
+
+void UPacGhostDecisionComponent::ResetWaveTracking()
+{
+    LastRequestedHuntMode = EPacGhostBehaviorMode::None;
+}
+
+// The house door is closed to a ghost unless it is inside / leaving, or it was
+// eaten and is running home.
+bool UPacGhostDecisionComponent::CanEnterHouse() const
+{
+    return HouseState != EPacGhostHouseState::Outside ||
+           BehaviorMode == EPacGhostBehaviorMode::Eaten;
+}
+
+void UPacGhostDecisionComponent::UpdateHousePermission()
+{
+    if (MovementComponent != nullptr)
+    {
+        MovementComponent->SetCanEnterGhostHouse(CanEnterHouse());
+    }
+}
+
 
 void UPacGhostDecisionComponent::Respawn()
 {
@@ -151,6 +199,18 @@ void UPacGhostDecisionComponent::SetBehaviorMode(EPacGhostBehaviorMode const New
     {
         BaseMode = NewMode;
 
+        // A Scatter request after something else (or after nothing) is the
+        // start of a new wave.
+        if (NewMode == EPacGhostBehaviorMode::Scatter &&
+            LastRequestedHuntMode != EPacGhostBehaviorMode::Scatter)
+        {
+            LastRequestedHuntMode = NewMode;
+            OnScatterRoundStarted.Broadcast();
+        }
+
+        LastRequestedHuntMode = NewMode;
+
+
         // Frightened / Eaten win over the schedule. The new base mode is
         // remembered and applied by ReleaseOverride().
         if (BehaviorMode == EPacGhostBehaviorMode::Frightened ||
@@ -205,6 +265,7 @@ void UPacGhostDecisionComponent::ApplyMode(EPacGhostBehaviorMode const NewMode)
         SpeedMultiplier = EatenSpeedMultiplier;
     }
     MovementComponent->SetSpeedMultiplier(SpeedMultiplier);
+    UpdateHousePermission();
 
     OnModeChanged.Broadcast(NewMode);
 
@@ -242,6 +303,13 @@ void UPacGhostDecisionComponent::SetPersonality(EPacGhostPersonality NewPersonal
 void UPacGhostDecisionComponent::HandleGridPositionChanged(
     [[maybe_unused]] FPacGridPosition const & Position)
 {
+    // Out of the door: from now on the house is closed to this ghost again.
+    if (HouseState == EPacGhostHouseState::Leaving && Position == HouseExitPosition)
+    {
+        HouseState = EPacGhostHouseState::Outside;
+        UpdateHousePermission();
+    }
+
     // The ghost just arrived on a tile: this is the real decision point.
     ChooseDirection();
     // A pending "reverse after mode switch" permission is used up once.
@@ -259,7 +327,7 @@ bool UPacGhostDecisionComponent::IsDirectionWalkable(
         return false;
     }
 
-    return Maze->IsWalkable(Neighbor);
+    return Maze->IsWalkable(Neighbor, CanEnterHouse());
 }
 
 
@@ -278,7 +346,9 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
 
     FPacGridPosition ResolvedTargetPosition;
 
-    if (!Grid.FindNearestWalkable(TargetPosition, ResolvedTargetPosition))
+    bool const bAllowHouse = CanEnterHouse();
+
+    if (!Grid.FindNearestWalkable(TargetPosition, ResolvedTargetPosition, bAllowHouse))
     {
         UE_LOG(LogPacMan, Error, TEXT("PAC: Could not resolve a walkable target."));
 
@@ -310,12 +380,14 @@ bool UPacGhostDecisionComponent::ChooseDirectionTowardTarget(
     if (Grid.FindFirstStep(StartPosition,
                            ResolvedTargetPosition,
                            ForbiddenFirstStep,
-                           ChosenDirection) ||
+                           ChosenDirection,
+                           bAllowHouse) ||
         (ForbiddenFirstStep != EPacDirection::None &&
          Grid.FindFirstStep(StartPosition,
                             ResolvedTargetPosition,
                             EPacDirection::None,
-                            ChosenDirection)))
+                            ChosenDirection,
+                            bAllowHouse)))
     {
         MovementComponent->SetDirection(ChosenDirection);
         return true;
@@ -337,6 +409,20 @@ void UPacGhostDecisionComponent::ChooseDirection()
 
     check(Maze);
     check(MovementComponent);
+    // The house comes first: a waiting ghost wanders inside, a leaving ghost
+    // walks out, whatever its Scatter / Chase / Frightened mode is.
+    if (HouseState == EPacGhostHouseState::InHouse)
+    {
+        ChooseDirectionInHouse();
+        return;
+    }
+
+    if (HouseState == EPacGhostHouseState::Leaving)
+    {
+        ChooseDirectionTowardTarget(HouseExitPosition);
+        return;
+    }
+
 
     if (BehaviorMode == EPacGhostBehaviorMode::Chase)
     {
@@ -448,6 +534,47 @@ void UPacGhostDecisionComponent::ChooseDirection()
     // Frightened (and anything without a target) wanders.
     ChooseRandomDirection();
 }
+
+// Waiting in the house: wander randomly. Only house tiles count, so the ghost
+// can never walk out of the door by itself.
+bool UPacGhostDecisionComponent::ChooseDirectionInHouse()
+{
+    check(Maze);
+    check(MovementComponent);
+
+    FPacGridPosition const Current = MovementComponent->GetCurrentGridPosition();
+
+    auto const CollectHouseDirections =
+        [this, &Current](TArray<EPacDirection> & Out,
+                         EPacDirection const     First,
+                         EPacDirection const     Second)
+    {
+        for (EPacDirection const Direction : {First, Second})
+        {
+            if (Maze->IsGhostHouseTile(GetNeighbor(Current, Direction)))
+            {
+                Out.Add(Direction);
+            }
+        }
+    };
+
+    TArray<EPacDirection> Options;
+    CollectHouseDirections(Options, EPacDirection::Up, EPacDirection::Down);
+
+    if (Options.IsEmpty())
+    {
+        CollectHouseDirections(Options, EPacDirection::Left, EPacDirection::Right);
+    }
+
+    if (Options.IsEmpty())
+    {
+        return false;  // a one-tile house: just stand there
+    }
+
+    MovementComponent->SetDirection(Options[FMath::RandRange(0, Options.Num() - 1)]);
+    return true;
+}
+
 
 bool UPacGhostDecisionComponent::ChooseRandomDirection()
 {

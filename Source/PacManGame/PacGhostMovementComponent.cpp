@@ -73,7 +73,7 @@ void UPacGhostMovementComponent::InitializeMaze(APacMaze* InMaze,
 
     Maze = InMaze;
 
-    check(Maze->IsWalkable(StartPosition));
+    check(Maze->IsWalkable(StartPosition, true));
 
     CurrentGridPosition = StartPosition;
     TargetGridPosition  = StartPosition;
@@ -108,7 +108,9 @@ bool UPacGhostMovementComponent::TryStartMovement()
         return false;
     }
 
-    if (!Maze->IsWalkable(NextPosition))
+    // Even if a stale direction is left over, a ghost cannot step into the
+    // house unless it is allowed to.
+    if (!Maze->IsWalkable(NextPosition, bCanEnterGhostHouse))
     {
         return false;
     }
@@ -197,4 +199,9 @@ void UPacGhostMovementComponent::SetMovementEnabled(bool const bEnabled)
 void UPacGhostMovementComponent::SetSpeedMultiplier(float const Multiplier)
 {
     SpeedMultiplier = FMath::Max(Multiplier, 0.0f);
+}
+
+void UPacGhostMovementComponent::SetCanEnterGhostHouse(bool const bCanEnter)
+{
+    bCanEnterGhostHouse = bCanEnter;
 }

@@ -24,7 +24,7 @@ APacMaze::APacMaze()
         TEXT("CameraComponent"));
 
     CameraComponent->SetupAttachment(BaseComponent);
-    // CameraComponent->ProjectionMode = ECameraProjectionMode::Orthographic;
+    // CameraComponent->ProjectionMode = ECameraPrioectionMode::Orthographic;
 
     // CameraComponent->OrthoWidth = 3200.0f;
 
@@ -128,7 +128,7 @@ bool APacMaze::ValidateStartPositions() const
             return false;
         }
 
-        if (!Grid.IsWalkable(GhostStart))
+        if (!Grid.IsWalkable(GhostStart, true))
         {
             UE_LOG(LogPacMan,
                    Error,
@@ -141,6 +141,31 @@ bool APacMaze::ValidateStartPositions() const
 
             return false;
         }
+
+        // A ghost that starts inside the house needs a way out.
+        if (Grid.IsGhostHouse(GhostStart))
+        {
+            FPacGridPosition const Exit = MazeData->GhostHouseExit;
+
+            EPacDirection FirstStep = EPacDirection::None;
+
+            if (!Grid.IsWalkable(Exit) ||
+                !Grid.FindFirstStep(GhostStart, Exit, EPacDirection::None, FirstStep, true))
+            {
+                UE_LOG(LogPacMan,
+                       Error,
+                       TEXT("Maze '%s': GhostStart[%d] is inside the ghost "
+                            "house, but GhostHouseExit (%d, %d) is not a "
+                            "street "
+                            "tile reachable from it."),
+                       *MazeData->GetName(),
+                       Index,
+                       Exit.X,
+                       Exit.Y);
+
+                return false;
+            }
+        }
     }
 
     if (!Grid.IsWalkable(PlayerStart))
@@ -148,7 +173,7 @@ bool APacMaze::ValidateStartPositions() const
         UE_LOG(LogPacMan,
                Error,
                TEXT("Maze '%s' has PlayerStart at (%d, %d), but that cell is a "
-                    "wall."),
+                    "wall or inside the ghost house."),
                *MazeData->GetName(),
                PlayerStart.X,
                PlayerStart.Y);
@@ -174,10 +199,15 @@ void APacMaze::SetTile(FPacGridPosition const & Position, EPacTileType TileType)
     Grid.SetTile(Position, TileType);
 }
 
-bool APacMaze::IsWalkable(FPacGridPosition const & Position) const
+bool APacMaze::IsWalkable(FPacGridPosition const & Position,
+                          bool const               bAllowGhostHouse) const
 {
+    return Grid.IsWalkable(Position, bAllowGhostHouse);
+}
 
-    return Grid.IsWalkable(Position);
+bool APacMaze::IsGhostHouseTile(FPacGridPosition const & Position) const
+{
+    return Grid.IsGhostHouse(Position);
 }
 
 FVector APacMaze::GridToWorld(FPacGridPosition const & Position) const
@@ -267,6 +297,17 @@ void APacMaze::DrawDebugMaze() const
                              0,
                              2.0f);
             }
+            else if (Tile == EPacTileType::GhostHouse)
+            {
+                DrawDebugBox(GetWorld(),
+                             WorldPosition,
+                             BoxExtent * 0.5,
+                             FColor::Magenta,
+                             true,
+                             -1.0f,
+                             0,
+                             1.0f);
+            }
             else if (Tile == EPacTileType::Pellet)
             {
                 // DrawDebugPoint(GetWorld(), WorldPosition, 10.0f, FColor::Yellow, true, -1.0f);
@@ -299,6 +340,14 @@ TArray<FPacGridPosition> const & APacMaze::GetGhostStarts() const
 
     return MazeData->GhostStarts;
 }
+
+FPacGridPosition APacMaze::GetGhostHouseExit() const
+{
+    check(MazeData);
+
+    return MazeData->GhostHouseExit;
+}
+
 
 UCameraComponent* APacMaze::GetCameraComponent() const
 {

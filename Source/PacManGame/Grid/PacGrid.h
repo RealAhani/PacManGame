@@ -22,7 +22,8 @@ public:
 
     // -------------------- building --------------------
 
-    // Parses a text layout. '#' wall, '.' pellet, 'o' power pellet, '-' empty.
+    // Parses a text layout. '#' wall, '.' pellet, 'o' power pellet, '-' empty,
+    // 'H' ghost house (inside floor, no pellets).
     // Line endings may be \n or \r\n, trailing blank lines are ignored.
     // On failure returns false, leaves OutGrid empty and fills OutError.
     static bool TryParse(FString const & Layout,
@@ -40,7 +41,11 @@ public:
     bool         IsValidPosition(FPacGridPosition const & Position) const;
     EPacTileType GetTile(FPacGridPosition const & Position) const;
     bool TryGetTile(FPacGridPosition const & Position, EPacTileType & OutTile) const;
-    bool IsWalkable(FPacGridPosition const & Position) const;
+    // Walkable = not a wall and not the ghost house. Pass true to also allow
+    // the ghost house (for ghosts that may be in it).
+    bool IsWalkable(FPacGridPosition const & Position,
+                    bool                     bAllowGhostHouse = false) const;
+    bool IsGhostHouse(FPacGridPosition const & Position) const;
     bool TryGetNeighbor(FPacGridPosition const & Position,
                         EPacDirection            Direction,
                         FPacGridPosition &       OutNeighbor) const;
@@ -80,13 +85,15 @@ public:
     bool FindFirstStep(FPacGridPosition const & Start,
                        FPacGridPosition const & Target,
                        EPacDirection            ForbiddenFirstStep,
-                       EPacDirection &          OutFirstStep) const;
+                       EPacDirection &          OutFirstStep,
+                       bool                     bAllowGhostHouse = false) const;
 
     // Finds the walkable tile closest to Desired (Manhattan distance). Desired
     // may be inside a wall or outside the grid. Returns the walkable tile
     // itself if Desired is already walkable. False only if nothing is walkable.
     bool FindNearestWalkable(FPacGridPosition const & Desired,
-                             FPacGridPosition &       OutPosition) const;
+                             FPacGridPosition &       OutPosition,
+                             bool bAllowGhostHouse = false) const;
 
 private:
 
