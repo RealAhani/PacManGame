@@ -50,7 +50,7 @@ public:
     void                GoToNextLevel();
     FOnPacGameOver      OnGameOver;
     FOnPacLevelCompelet OnLevelCompelet;
-#if PAC_DEV()
+#if PAC_DEV
     void PacLose()
     {
         GameOver();

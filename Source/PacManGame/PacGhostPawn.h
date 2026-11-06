@@ -26,7 +26,7 @@ public:
     APacGhostPawn();
     UPacGhostMovementComponent* GetGhostMovementComponent() const;
     UPacGhostDecisionComponent* GetGhostDecisionComponent() const;
-#if PAC_DEV()
+#if PAC_DEV
     void KillGhost()
     {
         Destroy();

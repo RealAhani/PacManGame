@@ -253,7 +253,7 @@ void APacGameMode::CheckGhostCollision()
     {
         return;
     }
-#if PAC_DEV()
+#if PAC_DEV
     // true is invincible so we come back (UE_DEV)
     if (PlayerPawn->GetGodMode())
         return;

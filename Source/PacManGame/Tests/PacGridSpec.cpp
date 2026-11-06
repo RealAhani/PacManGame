@@ -7,7 +7,7 @@
 
 // clang-format off
 #include "Misc/AutomationTest.h"
-#include "Grid/PacGrid.h"
+#include "../Grid/PacGrid.h"
 // clang-format on
 
 #if WITH_DEV_AUTOMATION_TESTS

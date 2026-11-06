@@ -62,7 +62,7 @@ public:
     // Puts every ghost back on its start tile.
     void ResetGhosts();
 
-#if PAC_DEV()
+#if PAC_DEV
     void KillAllGhost()
     {
         for (APacGhostPawn* Ghost : Ghosts)

@@ -29,7 +29,7 @@ public:
     void                       SetMovementEnabled(bool bEnabled);
     UPacGridMovementComponent* GetGridMovementComponent() const;
 
-#if PAC_DEV()
+#if PAC_DEV
     void SetGodMode(bool bEnabled)
     {
         bGodMode = bEnabled;
@@ -48,7 +48,7 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UPacGridMovementComponent> GridMovementComponent;
 
-#if PAC_DEV()
+#if PAC_DEV
     bool bGodMode = false;
 #endif
 };

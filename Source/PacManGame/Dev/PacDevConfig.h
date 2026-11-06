@@ -1,3 +1,7 @@
 #pragma once
 
-#define PAC_DEV() (UE_BUILD_DEVELOPMENT || UE_BUILD_BUG)
+#if !UE_BUILD_SHIPPING
+#define PAC_DEV 1
+#else
+#define PAC_DEV 0
+#endif
