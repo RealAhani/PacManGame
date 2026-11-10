@@ -96,6 +96,10 @@ void APacPlayerController::SetupInputComponent()
                                        ETriggerEvent::Triggered,
                                        this,
                                        &APacPlayerController::HandleMoveRight);
+
+    InputComponent->BindTouch(IE_Pressed, this, &APacPlayerController::OnTouchPressed);
+    InputComponent->BindTouch(IE_Repeat, this, &APacPlayerController::OnTouchMoved);
+    InputComponent->BindTouch(IE_Released, this, &APacPlayerController::OnTouchReleased);
 }
 
 void APacPlayerController::SubmitDirection(EPacDirection const Direction)
@@ -146,4 +150,46 @@ void APacPlayerController::HandleMoveLeft(FInputActionValue const & Value)
 void APacPlayerController::HandleMoveRight(FInputActionValue const & Value)
 {
     SubmitDirection(EPacDirection::Right);
+}
+
+// Android-Input
+//
+void APacPlayerController::OnTouchPressed(ETouchIndex::Type Finger, FVector Location)
+{
+    if (bSwipeTracking)
+        return;  // ignore extra fingers
+    ActiveFinger   = Finger;
+    SwipeStart     = FVector2D(Location.X, Location.Y);
+    bSwipeTracking = true;
+}
+
+void APacPlayerController::OnTouchMoved(ETouchIndex::Type Finger, FVector Location)
+{
+    if (!bSwipeTracking || Finger != ActiveFinger)
+        return;
+
+    FVector2D const Current(Location.X, Location.Y);
+    FVector2D const Delta = Current - SwipeStart;
+
+    int32 SizeX = 0, SizeY = 0;
+    GetViewportSize(SizeX, SizeY);
+    float const MinDist = FMath::Min(SizeX, SizeY) * MinSwipeFraction;
+
+    if (Delta.SizeSquared() < MinDist * MinDist)
+        return;
+
+    // Screen Y points down
+    EPacDirection const
+        Dir = FMath::Abs(Delta.X) > FMath::Abs(Delta.Y)
+                  ? (Delta.X > 0.f ? EPacDirection::Left : EPacDirection::Right)
+                  : (Delta.Y > 0.f ? EPacDirection::Down : EPacDirection::Up);
+
+    SubmitDirection(Dir);
+    SwipeStart = Current;  // lets the player chain swipes without lifting the finger
+}
+
+void APacPlayerController::OnTouchReleased(ETouchIndex::Type Finger, FVector Location)
+{
+    if (Finger == ActiveFinger)
+        bSwipeTracking = false;
 }

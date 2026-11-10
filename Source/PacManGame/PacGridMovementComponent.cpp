@@ -179,9 +179,7 @@ float UPacGridMovementComponent::MoveTowardTarget(float const MaxDistance)
     // A tunnel step is two walks: first off the edge of the map to a virtual
     // tile just outside it, then (after popping out on the opposite side) from
     // the virtual tile there into the real target tile.
-    FPacGridPosition const Offset = GetGridOffset(CurrentDirection);
-    FPacGridPosition const ExitTile(CurrentGridPosition.X ,
-                                    CurrentGridPosition.Y );
+    FPacGridPosition const ExitTile(CurrentGridPosition.X, CurrentGridPosition.Y);
 
     FVector const GoalWorldPosition = bCrossingTunnel
                                           ? Maze->GridToWorldUnchecked(ExitTile)
@@ -203,8 +201,8 @@ float UPacGridMovementComponent::MoveTowardTarget(float const MaxDistance)
             // carry the leftover distance into the walk to the target tile.
             bCrossingTunnel = false;
 
-            FPacGridPosition const EntryTile(TargetGridPosition.X ,
-                                             TargetGridPosition.Y );
+            FPacGridPosition const EntryTile(TargetGridPosition.X,
+                                             TargetGridPosition.Y);
 
             UpdatedComponent->SetWorldLocation(
                 Maze->GridToWorldUnchecked(EntryTile));

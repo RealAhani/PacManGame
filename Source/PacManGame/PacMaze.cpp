@@ -8,19 +8,20 @@
 #include "Components/SceneComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "PacMazeDataAsset.h"
+#include "PacPlayerPawn.h"
 // clang-format on
 
 // Sets default values
 APacMaze::APacMaze()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
     BaseComponent                 = CreateDefaultSubobject<USceneComponent>(
         TEXT("RootComponent"));
 
     SetRootComponent(BaseComponent);
-
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(
         TEXT("SpringArm"));
@@ -49,6 +50,16 @@ void APacMaze::BeginPlay()
 
     InitializeRuntime();
     DrawDebugMaze();
+
+    TargetPlayer = Cast<APacPlayerPawn>(
+        UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+    if (MazeData.Get() != nullptr)
+    {
+        auto const sz = MazeData.Get()->GridSize;
+        FPacGridPosition const pt = FPacGridPosition((sz.X / 2) - 1, (sz.Y / 2) - 1);
+        auto const tmp  = GridToWorld(pt);
+        CenterOfMazeMap = FVector(tmp.X, tmp.Y, 0.f);
+    }
 }
 
 void APacMaze::PostInitializeComponents()
@@ -61,6 +72,45 @@ void APacMaze::PostInitializeComponents()
     }
 
     InitializeRuntime();
+}
+
+void APacMaze::Tick(float const DeltaTime)
+{
+    Super::Tick(DeltaTime);
+
+    AActor const* Player = TargetPlayer.Get();
+    if (Player == nullptr || SpringArmComponent == nullptr)
+    {
+        return;
+    }
+
+    FVector const Home     = CenterOfMazeMap;
+    FVector const ToPlayer = Player->GetActorLocation() - Home;
+
+    // Same axes you used for the working version, plus the perpendicular one.
+    FVector const AxisA = FVector::RightVector;    // existing axis (world Y)
+    FVector const AxisB = FVector::ForwardVector;  // new axis (world X)
+    DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisA * 200, FColor::Green);
+    DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisB * 200, FColor::Red);
+
+    float const OffsetA = FVector::DotProduct(ToPlayer, AxisA);
+    float const OffsetB = FVector::DotProduct(ToPlayer, AxisB);
+
+    float const DesiredA = FMath::GetMappedRangeValueClamped(FVector2D(-1500, 1500),
+                                                             FVector2D(-950, 1000),
+                                                             OffsetA);
+    float const DesiredB = FMath::GetMappedRangeValueClamped(FVector2D(-1000, 1000),
+                                                             FVector2D(-300, 300),
+                                                             OffsetB);
+
+    FVector const DesiredLoc = Home + AxisA * DesiredA + AxisB * DesiredB;
+    DrawDebugLine(GetWorld(), Home, DesiredLoc, FColor::White);
+
+    SpringArmComponent->SetWorldLocation(
+        FMath::VInterpTo(SpringArmComponent->GetComponentLocation(),
+                         DesiredLoc,
+                         DeltaTime,
+                         SpringArmTrackSpeed));
 }
 
 void APacMaze::InitializeRuntime()

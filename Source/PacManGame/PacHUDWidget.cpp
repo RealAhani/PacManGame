@@ -3,6 +3,32 @@
 
 #include "Components/TextBlock.h"
 // clang-format on
+void UPacHUDWidget::NativeTick(FGeometry const & MyGeometry, float InDeltaTime)
+{
+    Super::NativeTick(MyGeometry, InDeltaTime);
+
+    if (InDeltaTime <= 0.0f)
+    {
+        return;
+    }
+
+    ElapsedTime += InDeltaTime;
+    ++FrameCount;
+
+    if (ElapsedTime >= 0.5f)
+    {
+        float const FPS = static_cast<float>(FrameCount) / ElapsedTime;
+
+        if (FpsText)
+        {
+            FpsText->SetText(
+                FText::FromString(FString::Printf(TEXT("FPS: %.0f"), FPS)));
+        }
+
+        ElapsedTime = 0.0f;
+        FrameCount  = 0;
+    }
+}
 
 void UPacHUDWidget::SetScore(int32 const Score)
 {

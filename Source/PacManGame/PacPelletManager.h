@@ -64,5 +64,16 @@ private:
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;
 
+
+    UPROPERTY(EditAnywhere,
+              Category = "Pellets",
+              meta     = (ClampMin = "0.1", ClampMax = "1.0"))
+    float PelletSize = 1.0f;
+
+    UPROPERTY(EditAnywhere,
+              Category = "Pellets",
+              meta     = (ClampMin = "0.1", ClampMax = "1.0"))
+    float PowerPelletSize = 1.0f;
+
     TMap<FPacGridPosition, FPacPelletData> Pellets;
 };

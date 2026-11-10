@@ -1,8 +1,8 @@
 #pragma once
 
 // clang-format off
-#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
 #include "PacHUDWidget.generated.h"
 // clang-format on
 
@@ -24,6 +24,8 @@ public:
 protected:
 
     virtual void NativeConstruct() override;
+    virtual void NativeTick(FGeometry const & MyGeometry, float InDeltaTime) override;
+
 
 private:
 
@@ -41,4 +43,11 @@ private:
     // Optional: a TextBlock named GameOverText, shown when the game ends.
     UPROPERTY(meta = (BindWidgetOptional))
     TObjectPtr<UTextBlock> WinningText;
+
+    // Optional: a TextBlock named GameOverText, shown when the game ends.
+    UPROPERTY(meta = (BindWidgetOptional))
+    TObjectPtr<UTextBlock> FpsText;
+
+    float ElapsedTime = 0.0f;
+    int32 FrameCount  = 0;
 };

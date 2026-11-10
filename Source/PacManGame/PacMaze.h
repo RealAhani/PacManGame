@@ -14,6 +14,7 @@ class UPacMazeDataAsset;
 class USceneComponent;
 class UCameraComponent;
 class USpringArmComponent;
+class APacPlayerPawn;
 
 /**
  * The Unreal side of the maze: world positions, camera and debug drawing.
@@ -79,6 +80,7 @@ protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
     virtual void PostInitializeComponents() override;
+    virtual void Tick(float const DeltaTime) override;
 
 private:
 
@@ -105,11 +107,20 @@ private:
     UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<USceneComponent> BaseComponent;
 
+    // -------------------- camera --------------------
     UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<USpringArmComponent> SpringArmComponent;
 
     UPROPERTY(EditAnywhere, Category = "Components")
+    float SpringArmTrackSpeed = 1000.f;
+
+    UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComponent;
+
+    TWeakObjectPtr<APacPlayerPawn> TargetPlayer;
+
+    UPROPERTY(EditAnywhere, Category = "Components")
+    FVector CenterOfMazeMap;
 
 public:
 
