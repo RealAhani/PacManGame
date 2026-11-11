@@ -5,6 +5,7 @@
 #include "Logging/PacManLog.h"
 #include "PacPlayerPawn.h"
 #include "PacTouchMenuWidget.h"
+#include "PacExitWidget.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -47,6 +48,14 @@ void APacPlayerController::BeginPlay()
         if (TouchMenuWidget != nullptr)
         {
             TouchMenuWidget->AddToViewport(10);  // above the HUD
+        }
+    }
+    if (PacExitMenuWidgetClass != nullptr)
+    {
+        PacExitWidget = CreateWidget<UPacExitWidget>(this, PacExitMenuWidgetClass);
+        if (PacExitWidget != nullptr)
+        {
+            PacExitWidget->AddToViewport(11);  // above the Menu
         }
     }
 
@@ -132,12 +141,25 @@ void APacPlayerController::SetupInputComponent()
     InputComponent->BindKey(EKeys::Android_Back,
                             IE_Pressed,
                             this,
-                            &APacPlayerController::OnAndroidBackPressed);
+                            &APacPlayerController::HandleBackPressed);
+#else
+    InputComponent->BindKey(EKeys::Escape,
+                            IE_Pressed,
+                            this,
+                            &APacPlayerController::HandleBackPressed);
 
 #endif
 }
 
-void APacPlayerController::OnAndroidBackPressed()
+void APacPlayerController::HandleBackPressed()
+{
+    if (PacExitWidget != nullptr)
+    {
+        PacExitWidget->OpenMenu();
+    }
+}
+
+void APacPlayerController::ClosePacGame()
 {
     UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
 }

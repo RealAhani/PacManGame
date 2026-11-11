@@ -8,6 +8,7 @@
 
 class UButton;
 class UWidget;
+class UVerticalBox;
 class APacPlayerController;
 
 // A small settings menu: a button on screen opens a panel where the player picks
@@ -47,6 +48,12 @@ private:
 
     // -------------------- widgets (names must match in the Blueprint)
     // -------------------- The small button that is always on screen.
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UButton> BackDropButton;
+
+    UPROPERTY(meta = (BindWidget))
+    TObjectPtr<UVerticalBox> BackDropPanel;
+
     UPROPERTY(meta = (BindWidget))
     TObjectPtr<UButton> MenuButton;
 

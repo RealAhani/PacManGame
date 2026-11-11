@@ -5,6 +5,7 @@
 #include "PacPlayerController.h"
 
 #include "Components/Button.h"
+#include "Components/VerticalBox.h"
 #include "Kismet/GameplayStatics.h"
 // clang-format on
 
@@ -13,6 +14,11 @@ void UPacTouchMenuWidget::NativeConstruct()
     Super::NativeConstruct();
 
     // The widgets are bound by name; AddDynamic needs valid pointers.
+    if (BackDropButton != nullptr)
+    {
+        BackDropButton->OnClicked.AddDynamic(this, &UPacTouchMenuWidget::HandleCloseClicked);
+    }
+
     if (MenuButton != nullptr)
     {
         MenuButton->OnClicked.AddDynamic(this,
@@ -47,6 +53,10 @@ void UPacTouchMenuWidget::NativeConstruct()
     {
         MenuPanel->SetVisibility(ESlateVisibility::Collapsed);
     }
+    if (BackDropPanel != nullptr)
+    {
+        BackDropPanel->SetVisibility(ESlateVisibility::Collapsed);
+    }
 
     Refresh();
 }
@@ -75,6 +85,10 @@ void UPacTouchMenuWidget::OpenMenu()
     {
         MenuPanel->SetVisibility(ESlateVisibility::Visible);
     }
+    if (BackDropPanel != nullptr)
+    {
+        BackDropPanel->SetVisibility(ESlateVisibility::Visible);
+    }
 
     if (bPauseGameWhileOpen)
     {
@@ -91,6 +105,10 @@ void UPacTouchMenuWidget::CloseMenu()
     if (MenuPanel != nullptr)
     {
         MenuPanel->SetVisibility(ESlateVisibility::Collapsed);
+    }
+    if (BackDropPanel != nullptr)
+    {
+        BackDropPanel->SetVisibility(ESlateVisibility::Collapsed);
     }
 
     if (bPauseGameWhileOpen)

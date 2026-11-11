@@ -7,9 +7,11 @@
 #include "PacPlayerController.generated.h"
 // clang-format on
 
+// forward decl
 class UInputAction;
 class UInputMappingContext;
 class UPacTouchMenuWidget;
+class UPacExitWidget;
 struct FInputActionValue;
 
 // A short touch that did not move: where on the screen (pixels) and where on
@@ -63,6 +65,7 @@ public:
     // Screen pixels -> point on the tap plane. False if the touch ray misses it.
     bool ScreenToWorldOnPlane(FVector2D const & ScreenPosition,
                               FVector &         OutWorld) const;
+    void ClosePacGame();
 
     FOnPacTap   OnTap;
     FOnPacPinch OnPinch;
@@ -135,7 +138,7 @@ private:
     void  UpdatePinch();
     float GetFingerDistance() const;
     float GetMinViewportSide() const;
-    void  OnAndroidBackPressed();
+    void  HandleBackPressed();
 
     // -------------------- properties --------------------
     UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -156,9 +159,14 @@ private:
     // -------------------- Menu --------------------
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UPacTouchMenuWidget> TouchMenuWidgetClass;
-
     UPROPERTY()
     TObjectPtr<UPacTouchMenuWidget> TouchMenuWidget;
+
+    // -------------------- Exit-Menu --------------------
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UPacExitWidget> PacExitMenuWidgetClass;
+    UPROPERTY()
+    TObjectPtr<UPacExitWidget> PacExitWidget;
 
     EPacDirection LastSubmittedDirection = EPacDirection::None;
 
