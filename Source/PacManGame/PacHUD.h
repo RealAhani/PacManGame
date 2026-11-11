@@ -16,6 +16,7 @@ class PACMANGAME_API APacHUD : public AHUD
 protected:
 
     virtual void BeginPlay() override;
+    virtual void DrawHUD() override;
 
 private:
 
@@ -29,4 +30,10 @@ private:
 
     UPROPERTY()
     TObjectPtr<UPacHUDWidget> HUDWidget;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI|Joystick")
+    TObjectPtr<UTexture2D> JoystickBaseTexture;
+
+    UPROPERTY(EditDefaultsOnly, Category = "UI|Joystick")
+    TObjectPtr<UTexture2D> JoystickThumbTexture;
 };
