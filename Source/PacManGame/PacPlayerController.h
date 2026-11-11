@@ -9,6 +9,7 @@
 
 class UInputAction;
 class UInputMappingContext;
+class UPacTouchMenuWidget;
 struct FInputActionValue;
 
 // A short touch that did not move: where on the screen (pixels) and where on
@@ -134,6 +135,7 @@ private:
     void  UpdatePinch();
     float GetFingerDistance() const;
     float GetMinViewportSide() const;
+    void  OnAndroidBackPressed();
 
     // -------------------- properties --------------------
     UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -150,6 +152,13 @@ private:
 
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputAction> MoveRightAction;
+
+    // -------------------- Menu --------------------
+    UPROPERTY(EditDefaultsOnly, Category = "UI")
+    TSubclassOf<UPacTouchMenuWidget> TouchMenuWidgetClass;
+
+    UPROPERTY()
+    TObjectPtr<UPacTouchMenuWidget> TouchMenuWidget;
 
     EPacDirection LastSubmittedDirection = EPacDirection::None;
 

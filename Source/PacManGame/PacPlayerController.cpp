@@ -4,6 +4,7 @@
 #include "PacPlayerController.h"
 #include "Logging/PacManLog.h"
 #include "PacPlayerPawn.h"
+#include "PacTouchMenuWidget.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -11,6 +12,8 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Blueprint/UserWidget.h"
+#include "Kismet/KismetSystemLibrary.h"
 // clang-format on
 
 namespace
@@ -36,6 +39,15 @@ void APacPlayerController::BeginPlay()
     if (!IsLocalController())
     {
         return;
+    }
+
+    if (TouchMenuWidgetClass != nullptr)
+    {
+        TouchMenuWidget = CreateWidget<UPacTouchMenuWidget>(this, TouchMenuWidgetClass);
+        if (TouchMenuWidget != nullptr)
+        {
+            TouchMenuWidget->AddToViewport(10);  // above the HUD
+        }
     }
 
     if (PlayerMappingContext == nullptr)
@@ -115,6 +127,19 @@ void APacPlayerController::SetupInputComponent()
     InputComponent->BindTouch(IE_Pressed, this, &APacPlayerController::OnTouchPressed);
     InputComponent->BindTouch(IE_Repeat, this, &APacPlayerController::OnTouchMoved);
     InputComponent->BindTouch(IE_Released, this, &APacPlayerController::OnTouchReleased);
+
+#if PLATFORM_ANDROID
+    InputComponent->BindKey(EKeys::Android_Back,
+                            IE_Pressed,
+                            this,
+                            &APacPlayerController::OnAndroidBackPressed);
+
+#endif
+}
+
+void APacPlayerController::OnAndroidBackPressed()
+{
+    UKismetSystemLibrary::QuitGame(this, this, EQuitPreference::Quit, false);
 }
 
 void APacPlayerController::SubmitDirection(EPacDirection const Direction)
