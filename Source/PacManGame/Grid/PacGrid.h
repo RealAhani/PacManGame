@@ -87,6 +87,31 @@ public:
                        EPacDirection            ForbiddenFirstStep,
                        EPacDirection &          OutFirstStep,
                        bool                     bAllowGhostHouse = false) const;
+    // Number of steps from Origin to every tile, over walkable tiles (a tunnel
+    // step counts as one step). OutDistances has one entry per tile; read it
+    // with GetFieldDistance(). Unreachable tiles hold INDEX_NONE (-1).
+    // Returns false (and fills everything with INDEX_NONE) if Origin is not
+    // walkable.
+    bool BuildDistanceField(FPacGridPosition const & Origin,
+                            TArray<int32> &          OutDistances,
+                            bool bAllowGhostHouse = false) const;
+
+    // One entry of a field made by BuildDistanceField. INDEX_NONE if the
+    // position is outside the grid or unreachable.
+    int32 GetFieldDistance(TArray<int32> const &    Field,
+                           FPacGridPosition const & Position) const;
+
+    // Where should something at Fleer run to, to get away from Threat?
+    // Picks the tile that is farthest from the Threat among the tiles Fleer
+    // reaches strictly before the Threat does (so it never runs into a trap
+    // the Threat can close first). Fleer's own tile is not a target.
+    // False if there is no such tile (cornered): the caller picks something
+    // else. Ties go to the first tile in row order (Y, then X).
+    bool FindFleeTarget(FPacGridPosition const & Fleer,
+                        FPacGridPosition const & Threat,
+                        FPacGridPosition &       OutTarget,
+                        bool bAllowGhostHouse = false) const;
+
 
     // Finds the walkable tile closest to Desired (Manhattan distance). Desired
     // may be inside a wall or outside the grid. Returns the walkable tile

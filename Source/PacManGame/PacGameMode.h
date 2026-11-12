@@ -14,6 +14,7 @@ class APacPlayerPawn;
 class APacPelletManager;
 class APacPlayerState;
 class APacGhostManager;
+class APacFruitManager;
 
 UENUM()
 enum class EPacGameState : uint8
@@ -42,6 +43,7 @@ public:
     APacMaze*          GetMaze() const;
     APacPelletManager* GetPelletManager() const;
     APacGhostManager*  GetGhostManager() const;
+    APacFruitManager*  GetFruitManager() const;
     EPacGameState      GetGameState() const
     {
         return PacManGameState;
@@ -73,6 +75,7 @@ private:
     void BeginReady();
     void StartPlaying();
     void CheckGhostCollision();
+    void CheckFruitContact();
     void HandlePlayerCaught();
     void FinishDeath();
     void SetActorsMovementEnabled(bool bEnabled);
@@ -115,4 +118,8 @@ private:
 
     UPROPERTY()
     TObjectPtr<APacGhostManager> GhostManager;
+
+    // Optional: a level without a fruit manager simply has no fruit.
+    UPROPERTY()
+    TObjectPtr<APacFruitManager> FruitManager;
 };

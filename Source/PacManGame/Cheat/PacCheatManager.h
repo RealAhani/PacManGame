@@ -24,6 +24,9 @@ public:
     void PacGhostsKillAll();
 
     UFUNCTION(Exec)
+    void PacSpawnFruit();
+
+    UFUNCTION(Exec)
     void PacLose();
 
     UFUNCTION(Exec)

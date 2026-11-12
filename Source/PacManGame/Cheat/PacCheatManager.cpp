@@ -5,6 +5,7 @@
 #include "../PacPlayerPawn.h"
 #include "../PacGameMode.h"
 #include "../PacGhostManager.h"
+#include "../PacFruitManager.h"
 #endif
 
 
@@ -41,6 +42,24 @@ void UPacCheatManager::PacGhostsKillAll()
     GhostManager->KillAllGhost();
 #endif
 }
+
+void UPacCheatManager::PacSpawnFruit()
+{
+#if PAC_DEV
+    APacGameMode* GameMode = GetWorld()->GetAuthGameMode<APacGameMode>();
+    if (GameMode == nullptr)
+    {
+        return;
+    }
+    APacFruitManager* FruitManager = GameMode->GetFruitManager();
+    if (FruitManager == nullptr)
+    {
+        return;
+    }
+    FruitManager->SpawnFruitNow();
+#endif
+}
+
 
 void UPacCheatManager::PacLose()
 {

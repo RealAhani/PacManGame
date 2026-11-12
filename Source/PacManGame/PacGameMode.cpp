@@ -6,6 +6,7 @@
 #include "PacPelletManager.h"
 #include "PacPlayerState.h"
 #include "PacGhostManager.h"
+#include "PacFruitManager.h"
 #include "PacPlayerPawn.h"
 #include "PacGridMovementComponent.h"
 
@@ -133,6 +134,24 @@ bool APacGameMode::InitializeLevel()
     GhostManager->Initialize(Maze, PlayerMovement);
     GhostManager->OnGhostEaten.AddUObject(this, &APacGameMode::AddScoreToPlayer);
 
+    // ---- 5b. fruit (optional) ----
+    FruitManager = Cast<APacFruitManager>(
+        UGameplayStatics::GetActorOfClass(World, APacFruitManager::StaticClass()));
+
+    if (FruitManager != nullptr)
+    {
+        FruitManager->Initialize(Maze, PelletManager, PlayerMovement);
+        FruitManager->OnFruitEaten.AddUObject(this, &APacGameMode::AddScoreToPlayer);
+    }
+    else
+    {
+        UE_LOG(LogPacMan,
+               Warning,
+               TEXT("PAC: No APacFruitManager placed in the level: no bonus "
+                    "fruit."));
+    }
+
+
     // ---- 6. rules ----
     if (APacPlayerState* PacPlayerState = PlayerController
                                               ->GetPlayerState<APacPlayerState>())
@@ -233,6 +252,12 @@ APacGhostManager* APacGameMode::GetGhostManager() const
     return GhostManager;
 }
 
+APacFruitManager* APacGameMode::GetFruitManager() const
+{
+    return FruitManager;
+}
+
+
 void APacGameMode::Tick(float const DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
@@ -240,6 +265,7 @@ void APacGameMode::Tick(float const DeltaSeconds)
     if (PacManGameState == EPacGameState::Playing)
     {
         CheckGhostCollision();
+        CheckFruitContact();
     }
 }
 
@@ -267,6 +293,20 @@ void APacGameMode::CheckGhostCollision()
         HandlePlayerCaught();
     }
 }
+
+// Eating the fruit: same distance test as the ghosts. Fires the fruit
+// manager's OnFruitEaten, which adds the score.
+void APacGameMode::CheckFruitContact()
+{
+    if (PlayerPawn == nullptr || FruitManager == nullptr || Maze == nullptr)
+    {
+        return;
+    }
+
+    FruitManager->UpdateContacts(PlayerPawn->GetActorLocation(),
+                                 Maze->GetTileSize() * HitDistanceInTiles);
+}
+
 
 void APacGameMode::HandlePlayerCaught()
 {
@@ -320,6 +360,11 @@ void APacGameMode::SetActorsMovementEnabled(bool const bEnabled)
     if (GhostManager != nullptr)
     {
         GhostManager->SetMovementEnabled(bEnabled);
+    }
+
+    if (FruitManager != nullptr)
+    {
+        FruitManager->SetMovementEnabled(bEnabled);
     }
 }
 

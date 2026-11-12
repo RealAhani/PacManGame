@@ -338,6 +338,124 @@ bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
     return false;
 }
 
+bool FPacGrid::BuildDistanceField(FPacGridPosition const & Origin,
+                                  TArray<int32> &          OutDistances,
+                                  bool const bAllowGhostHouse) const
+{
+    int32 const CellCount = Size.X * Size.Y;
+
+    OutDistances.Init(INDEX_NONE, CellCount);
+
+    if (!IsWalkable(Origin, bAllowGhostHouse))
+    {
+        return false;
+    }
+
+    TArray<FPacGridPosition> Queue;
+    Queue.Reserve(CellCount);
+
+    Queue.Add(Origin);
+    OutDistances[GetIndex(Origin)] = 0;
+
+    for (int32 QueueIndex = 0; QueueIndex < Queue.Num(); ++QueueIndex)
+    {
+        FPacGridPosition const Current = Queue[QueueIndex];
+        int32 const CurrentDistance    = OutDistances[GetIndex(Current)];
+
+        for (EPacDirection const Direction : AllDirections)
+        {
+            FPacGridPosition Next;
+
+            if (!TryGetNeighborWrapping(Current, Direction, Next) ||
+                !IsWalkable(Next, bAllowGhostHouse))
+            {
+                continue;
+            }
+
+            int32 const NextIndex = GetIndex(Next);
+
+            if (OutDistances[NextIndex] != INDEX_NONE)
+            {
+                continue;
+            }
+
+            OutDistances[NextIndex] = CurrentDistance + 1;
+            Queue.Add(Next);
+        }
+    }
+
+    return true;
+}
+
+int32 FPacGrid::GetFieldDistance(TArray<int32> const &    Field,
+                                 FPacGridPosition const & Position) const
+{
+    if (!IsValidPosition(Position) || Field.Num() != Size.X * Size.Y)
+    {
+        return INDEX_NONE;
+    }
+
+    return Field[GetIndex(Position)];
+}
+
+bool FPacGrid::FindFleeTarget(FPacGridPosition const & Fleer,
+                              FPacGridPosition const & Threat,
+                              FPacGridPosition &       OutTarget,
+                              bool const               bAllowGhostHouse) const
+{
+    TArray<int32> FleerField;
+    TArray<int32> ThreatField;
+
+    if (!BuildDistanceField(Fleer, FleerField, bAllowGhostHouse) ||
+        !BuildDistanceField(Threat, ThreatField, bAllowGhostHouse))
+    {
+        return false;
+    }
+
+    // A tile the Threat cannot reach at all is as safe as it gets.
+    int32 const Unreachable = Size.X * Size.Y;
+
+    bool  bFound     = false;
+    int32 BestThreat = 0;
+
+    for (int32 Y = 0; Y < Size.Y; ++Y)
+    {
+        for (int32 X = 0; X < Size.X; ++X)
+        {
+            FPacGridPosition const Candidate(X, Y);
+            int32 const            Index = GetIndex(Candidate);
+
+            int32 const FleerDistance = FleerField[Index];
+
+            // Unreachable for the Fleer, or the Fleer's own tile.
+            if (FleerDistance <= 0)
+            {
+                continue;
+            }
+
+            int32 const ThreatDistance = ThreatField[Index] == INDEX_NONE
+                                             ? Unreachable
+                                             : ThreatField[Index];
+
+            // The Threat gets there first, or at the same time.
+            if (FleerDistance >= ThreatDistance)
+            {
+                continue;
+            }
+
+            if (!bFound || ThreatDistance > BestThreat)
+            {
+                bFound     = true;
+                BestThreat = ThreatDistance;
+                OutTarget  = Candidate;
+            }
+        }
+    }
+
+    return bFound;
+}
+
+
 bool FPacGrid::FindNearestWalkable(FPacGridPosition const & Desired,
                                    FPacGridPosition &       OutPosition,
                                    bool const bAllowGhostHouse) const

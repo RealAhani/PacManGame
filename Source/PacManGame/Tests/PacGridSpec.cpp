@@ -751,6 +751,185 @@ void FPacGridSpec::Define()
                                  Resolved == FPacGridPosition(3, 3));
                     });
              });
+    // ------------------------------------------------------------------
+    Describe("DistanceField",
+             [this]()
+             {
+                 It("counts steps along a corridor",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(CorridorLayout, CorridorSize);
+
+                        TArray<int32> Field;
+                        TestTrue(TEXT("built"),
+                                 Grid.BuildDistanceField(FPacGridPosition(1, 1),
+                                                         Field));
+
+                        TestEqual(TEXT("origin"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(1, 1)),
+                                  0);
+                        TestEqual(TEXT("one step"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(2, 1)),
+                                  1);
+                        TestEqual(TEXT("two steps"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(3, 1)),
+                                  2);
+                    });
+
+                 It("goes around a wall block",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(RingLayout, RingSize);
+
+                        TArray<int32> Field;
+                        Grid.BuildDistanceField(FPacGridPosition(1, 2), Field);
+
+                        // (1,2) to (3,2): the block at (2,2) is in the way,
+                        // so it is 4 steps around it, not 2.
+                        TestEqual(TEXT("around the block"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(3, 2)),
+                                  4);
+                    });
+
+                 It("marks other rooms and walls unreachable",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(SplitLayout, SplitSize);
+
+                        TArray<int32> Field;
+                        Grid.BuildDistanceField(FPacGridPosition(1, 1), Field);
+
+                        TestEqual(TEXT("other room"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(3, 1)),
+                                  static_cast<int32>(INDEX_NONE));
+                        TestEqual(TEXT("wall"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(2, 1)),
+                                  static_cast<int32>(INDEX_NONE));
+                        TestEqual(TEXT("outside the grid"),
+                                  Grid.GetFieldDistance(Field,
+                                                        FPacGridPosition(9, 9)),
+                                  static_cast<int32>(INDEX_NONE));
+                    });
+
+                 It("fails from a wall",
+                    [this]()
+                    {
+                        FPacGrid Grid = MakeGrid(CorridorLayout, CorridorSize);
+
+                        TArray<int32> Field;
+                        TestFalse(TEXT("wall origin"),
+                                  Grid.BuildDistanceField(FPacGridPosition(0, 0),
+                                                          Field));
+                        TestEqual(TEXT("field is still full size"),
+                                  Field.Num(),
+                                  CorridorSize.X * CorridorSize.Y);
+                    });
+             });
+
+    // ------------------------------------------------------------------
+    Describe("FleeTarget",
+             [this]()
+             {
+                 It("runs to the far end, away from the threat",
+                    [this]()
+                    {
+                        // 7 wide corridor. Threat on the left, fleer in the middle.
+                        FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
+                                                      "#"),
+                                                 FIntPoint(7, 3));
+
+                        FPacGridPosition Target;
+                        TestTrue(TEXT("found"),
+                                 Grid.FindFleeTarget(FPacGridPosition(3, 1),
+                                                     FPacGridPosition(1, 1),
+                                                     Target));
+                        TestTrue(TEXT("far right end"),
+                                 Target == FPacGridPosition(5, 1));
+                    });
+
+                 It("does not pick a tile the threat reaches first",
+                    [this]()
+                    {
+                        // Threat is right next to the fleer on the right, so
+                        // the only safe tiles are on the left.
+                        FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
+                                                      "#"),
+                                                 FIntPoint(7, 3));
+
+                        FPacGridPosition Target;
+                        TestTrue(TEXT("found"),
+                                 Grid.FindFleeTarget(FPacGridPosition(3, 1),
+                                                     FPacGridPosition(4, 1),
+                                                     Target));
+                        TestTrue(TEXT("far left end"),
+                                 Target == FPacGridPosition(1, 1));
+                    });
+
+                 It("does not pick a tile that is equally far for both",
+                    [this]()
+                    {
+                        // Fleer (1,1), threat (5,1). A long side corridor
+                        // leaves the middle tile (3,1): its tiles are exactly
+                        // as far from the fleer as from the threat, so the
+                        // threat could be there at the same time. They must
+                        // not win just because they are far away.
+                        FPacGrid Grid = MakeGrid(TEXT("#######\n"
+                                                      "#-----#\n"
+                                                      "###-###\n"
+                                                      "###-###\n"
+                                                      "###-###\n"
+                                                      "###-###\n"
+                                                      "#######"),
+                                                 FIntPoint(7, 7));
+
+                        FPacGridPosition Target;
+                        TestTrue(TEXT("found"),
+                                 Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                     FPacGridPosition(5, 1),
+                                                     Target));
+                        TestTrue(TEXT("the safe tile next to the fleer"),
+                                 Target == FPacGridPosition(2, 1));
+                    });
+
+                 It("returns false when cornered",
+                    [this]()
+                    {
+                        // Fleer in the left dead end, threat right beside it:
+                        // every other tile is closer to the threat.
+                        FPacGrid Grid = MakeGrid(TEXT("#####\n#---#\n#####"),
+                                                 FIntPoint(5, 3));
+
+                        FPacGridPosition Target;
+                        TestFalse(TEXT("cornered"),
+                                  Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                      FPacGridPosition(2, 1),
+                                                      Target));
+                    });
+
+                 It("treats tiles the threat cannot reach as safe",
+                    [this]()
+                    {
+                        // Fleer and threat in separate rooms: any tile of the
+                        // fleer's room is safe.
+                        FPacGrid Grid = MakeGrid(TEXT("#######\n#--#--#\n######"
+                                                      "#"),
+                                                 FIntPoint(7, 3));
+
+                        FPacGridPosition Target;
+                        TestTrue(TEXT("found"),
+                                 Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                     FPacGridPosition(4, 1),
+                                                     Target));
+                        TestTrue(TEXT("the other tile of its room"),
+                                 Target == FPacGridPosition(2, 1));
+                    });
+             });
 }
 
 #endif  // WITH_DEV_AUTOMATION_TESTS
