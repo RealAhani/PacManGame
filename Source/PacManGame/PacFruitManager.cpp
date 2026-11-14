@@ -11,8 +11,10 @@
 
 #include "Engine/AssetManager.h"
 #include "Engine/StaticMesh.h"
+#include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "Sound/SoundBase.h"
 // clang-format on
 
 APacFruitManager::APacFruitManager()
@@ -52,8 +54,8 @@ void APacFruitManager::Initialize(APacMaze*                  InMaze,
         .AddUObject(this, &APacFruitManager::HandlePelletConsumed);
 }
 
-// Starts loading every fruit mesh now (level start), so the first spawn does
-// not have to wait for the disk.
+// Starts loading every fruit mesh and sound now (level start), so the first
+// spawn does not have to wait for the disk.
 void APacFruitManager::PreloadMeshes()
 {
     TArray<FSoftObjectPath> Paths;
@@ -63,6 +65,16 @@ void APacFruitManager::PreloadMeshes()
         if (Definition != nullptr && !Definition->Mesh.IsNull())
         {
             Paths.AddUnique(Definition->Mesh.ToSoftObjectPath());
+        }
+
+        if (Definition != nullptr && !Definition->SpawnSound.IsNull())
+        {
+            Paths.AddUnique(Definition->SpawnSound.ToSoftObjectPath());
+        }
+
+        if (Definition != nullptr && !Definition->DespawnSound.IsNull())
+        {
+            Paths.AddUnique(Definition->DespawnSound.ToSoftObjectPath());
         }
     }
 
@@ -89,6 +101,12 @@ void APacFruitManager::Tick(float const DeltaSeconds)
     {
         UE_LOG(LogPacMan, Log, TEXT("PAC: Fruit left the maze, nobody ate it."));
         PlayVanishEffect();
+
+        if (ActiveDefinition != nullptr)
+        {
+            PlayFruitSound(ActiveDefinition->DespawnSound);
+        }
+
         HideActiveFruit();
         return;
     }
@@ -136,6 +154,29 @@ void APacFruitManager::PlayVanishEffect() const
                                                    ENCPoolMethod::AutoRelease);
 }
 
+// 2D on purpose: the maze is a flat top-down board, so the sound should not
+// get quieter or pan with the camera. The sound was preloaded with the meshes;
+// if it is not there (yet) it is skipped instead of freezing the game to load.
+void APacFruitManager::PlayFruitSound(TSoftObjectPtr<USoundBase> const & Sound) const
+{
+    if (Sound.IsNull())
+    {
+        return;
+    }
+
+    USoundBase* const Loaded = Sound.Get();
+
+    if (Loaded == nullptr)
+    {
+        UE_LOG(LogPacMan,
+               Warning,
+               TEXT("PAC: Fruit sound '%s' was not loaded, skipped."),
+               *Sound.ToString());
+        return;
+    }
+
+    UGameplayStatics::PlaySound2D(this, Loaded);
+}
 
 void APacFruitManager::HideActiveFruit()
 {
@@ -274,6 +315,8 @@ void APacFruitManager::SpawnFruit()
     LastDefinition   = Definition;
     LifeTimeLeft     = FruitLifetimeSeconds;
     FlashPhase       = 0.0f;
+
+    PlayFruitSound(Definition->SpawnSound);
 
     UE_LOG(LogPacMan,
            Log,

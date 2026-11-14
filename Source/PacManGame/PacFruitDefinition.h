@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Engine/StaticMesh.h"
+#include "Sound/SoundBase.h"
 #include "PacFruitDefinition.generated.h"
 // clang-format on
 
@@ -29,6 +30,17 @@ public:
     // when this asset (or the level) loads.
     UPROPERTY(EditDefaultsOnly, Category = "Fruit")
     TSoftObjectPtr<UStaticMesh> Mesh;
+
+    // Played when this fruit appears in the maze. Soft reference like the mesh:
+    // preloaded by the manager at level start. Any sound asset works (Sound
+    // Wave, Sound Cue, MetaSound). Empty = silent.
+    UPROPERTY(EditDefaultsOnly, Category = "Fruit|Sound")
+    TSoftObjectPtr<USoundBase> SpawnSound;
+
+    // Played when this fruit leaves the maze because nobody ate it.
+    UPROPERTY(EditDefaultsOnly, Category = "Fruit|Sound")
+    TSoftObjectPtr<USoundBase> DespawnSound;
+
 
     UPROPERTY(EditDefaultsOnly, Category = "Fruit")
     FText DisplayName;

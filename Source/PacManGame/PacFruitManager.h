@@ -16,6 +16,7 @@ class APacFruitPawn;
 class UPacFruitDefinition;
 class UPacGridMovementComponent;
 class UNiagaraSystem;
+class USoundBase;
 
 // Fires with the fruit's score when Pac-Man eats it.
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnFruitEaten, int32 /*Score*/);
@@ -72,7 +73,7 @@ private:
     bool                 PickSpawnTile(FPacGridPosition & OutTile) const;
     UPacFruitDefinition* PickDefinition() const;
     void                 PreloadMeshes();
-
+    void PlayFruitSound(TSoftObjectPtr<USoundBase> const & Sound) const;
     // -------------------- properties --------------------
     // The kinds of fruit: Cherry, Strawberry, Peach...
     UPROPERTY(EditAnywhere, Category = "Fruit")
