@@ -92,6 +92,11 @@ void APacFruitPawn::ShowFruit(UPacFruitDefinition const & Definition,
     SetActorTickEnabled(true);
 }
 
+FVector APacFruitPawn::GetFruitMeshLocation() const
+{
+    return FruitMesh->GetComponentLocation();
+}
+
 void APacFruitPawn::HideFruit()
 {
     bShown = false;

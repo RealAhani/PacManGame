@@ -29,7 +29,7 @@ public class PacManGame : ModuleRules
         // Private: only used inside .cpp files.
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
-			"EnhancedInput", "GameplayStateTreeModule"
+			"EnhancedInput", "GameplayStateTreeModule","Niagara"
 		});
 
 		// Uncomment if you are using Slate UI

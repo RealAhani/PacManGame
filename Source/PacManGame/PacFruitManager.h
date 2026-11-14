@@ -15,6 +15,7 @@ class APacPelletManager;
 class APacFruitPawn;
 class UPacFruitDefinition;
 class UPacGridMovementComponent;
+class UNiagaraSystem;
 
 // Fires with the fruit's score when Pac-Man eats it.
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnFruitEaten, int32 /*Score*/);
@@ -66,6 +67,7 @@ private:
     void                 HandlePelletConsumed(int32 PelletScore);
     void                 SpawnFruit();
     void                 HideActiveFruit();
+    void                 PlayVanishEffect() const;
     bool                 EnsureFruitPawn();
     bool                 PickSpawnTile(FPacGridPosition & OutTile) const;
     UPacFruitDefinition* PickDefinition() const;
@@ -95,6 +97,12 @@ private:
     // lifetime left, faster every 3%).
     UPROPERTY(EditAnywhere, Category = "Fruit|Flash")
     FPacFruitFlashSettings Flash;
+
+    // Played where the fruit was when it leaves the maze uneaten (the white
+    // cube poof). Optional: empty = the fruit just disappears.
+    UPROPERTY(EditAnywhere, Category = "Fruit|Effects")
+    TObjectPtr<UNiagaraSystem> VanishEffect;
+
 
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;

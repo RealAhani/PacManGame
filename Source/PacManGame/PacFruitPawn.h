@@ -39,6 +39,9 @@ public:
 
     void HideFruit();
 
+    // Where the mesh is in the world right now (includes the float animation).
+    FVector GetFruitMeshLocation() const;
+
     // -1 = normal, 1 = fully white. Sets the scalar material parameter
     // FlashParameterName on the fruit's materials.
     void SetFlashAmount(float Amount);

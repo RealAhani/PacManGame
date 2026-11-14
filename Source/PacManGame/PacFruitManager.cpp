@@ -11,6 +11,8 @@
 
 #include "Engine/AssetManager.h"
 #include "Engine/StaticMesh.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 // clang-format on
 
 APacFruitManager::APacFruitManager()
@@ -86,6 +88,7 @@ void APacFruitManager::Tick(float const DeltaSeconds)
     if (LifeTimeLeft <= 0.0f)
     {
         UE_LOG(LogPacMan, Log, TEXT("PAC: Fruit left the maze, nobody ate it."));
+        PlayVanishEffect();
         HideActiveFruit();
         return;
     }
@@ -113,6 +116,26 @@ bool APacFruitManager::IsFruitActive() const
 {
     return FruitPawn != nullptr && FruitPawn->IsFruitShown();
 }
+
+void APacFruitManager::PlayVanishEffect() const
+{
+    if (!VanishEffect || !FruitPawn)
+    {
+        return;
+    }
+
+    // AutoRelease: the finished effect goes back into a pool and the next poof
+    // re-uses it, so there is no allocation while playing (good for mobile).
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,
+                                                   VanishEffect,
+                                                   FruitPawn->GetFruitMeshLocation(),
+                                                   FRotator::ZeroRotator,
+                                                   FVector::OneVector,
+                                                   true,
+                                                   true,
+                                                   ENCPoolMethod::AutoRelease);
+}
+
 
 void APacFruitManager::HideActiveFruit()
 {
