@@ -87,7 +87,11 @@ void APacFruitManager::Tick(float const DeltaSeconds)
     {
         UE_LOG(LogPacMan, Log, TEXT("PAC: Fruit left the maze, nobody ate it."));
         HideActiveFruit();
+        return;
     }
+    float const Remaining = LifeTimeLeft / FruitLifetimeSeconds;
+
+    FruitPawn->SetFlashAmount(Flash.Advance(Remaining, DeltaSeconds, FlashPhase));
 }
 
 void APacFruitManager::SetMovementEnabled(bool const bEnabled)
@@ -246,6 +250,7 @@ void APacFruitManager::SpawnFruit()
     ActiveDefinition = Definition;
     LastDefinition   = Definition;
     LifeTimeLeft     = FruitLifetimeSeconds;
+    FlashPhase       = 0.0f;
 
     UE_LOG(LogPacMan,
            Log,

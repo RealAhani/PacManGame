@@ -7,6 +7,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
 // clang-format on
 
 APacFruitPawn::APacFruitPawn()
@@ -65,6 +66,23 @@ void APacFruitPawn::ShowFruit(UPacFruitDefinition const & Definition,
 {
     FruitMesh->SetStaticMesh(LoadedMesh);
     FruitMesh->SetRelativeScale3D(FVector(Definition.MeshScale));
+
+    // A dynamic instance per slot, so the flash can change a parameter without
+    // touching the shared material. SetStaticMesh keeps the old overrides, and
+    // CreateAndSetMaterialInstanceDynamic re-uses them, so the new mesh would
+    // get the previous fruit's material. Clear them first: the instances are
+    // then made from the new mesh's own materials.
+    FlashMaterials.Reset();
+    FruitMesh->EmptyOverrideMaterials();
+    for (int32 Slot = 0; Slot < FruitMesh->GetNumMaterials(); ++Slot)
+    {
+        if (UMaterialInstanceDynamic* const
+                Dynamic = FruitMesh->CreateAndSetMaterialInstanceDynamic(Slot))
+        {
+            FlashMaterials.Add(Dynamic);
+        }
+    }
+    SetFlashAmount(0.0f);
     FruitMovementComponent->SetSpeedMultiplier(Definition.SpeedMultiplier);
 
     BobTime = 0.0f;
@@ -82,4 +100,15 @@ void APacFruitPawn::HideFruit()
 
     SetActorHiddenInGame(true);
     SetActorTickEnabled(false);
+}
+
+void APacFruitPawn::SetFlashAmount(float const Amount)
+{
+    for (UMaterialInstanceDynamic* const Dynamic : FlashMaterials)
+    {
+        if (Dynamic)
+        {
+            Dynamic->SetScalarParameterValue(FlashParameterName, Amount);
+        }
+    }
 }

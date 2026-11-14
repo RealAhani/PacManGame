@@ -12,6 +12,7 @@ class UStaticMesh;
 class UPacFruitDefinition;
 class UPacGhostMovementComponent;
 class UPacFruitDecisionComponent;
+class UMaterialInstanceDynamic;
 
 // The bonus fruit. One of these is created by APacFruitManager and re-used for
 // every spawn: it is shown with ShowFruit() and hidden with HideFruit().
@@ -37,6 +38,10 @@ public:
     void ShowFruit(UPacFruitDefinition const & Definition, UStaticMesh* LoadedMesh);
 
     void HideFruit();
+
+    // -1 = normal, 1 = fully white. Sets the scalar material parameter
+    // FlashParameterName on the fruit's materials.
+    void SetFlashAmount(float Amount);
 
     bool IsFruitShown() const
     {
@@ -67,6 +72,15 @@ private:
     // Height of the mesh above the maze floor.
     UPROPERTY(EditDefaultsOnly, Category = "Float")
     float BaseHeight = 30.0f;
+
+    // Name of the scalar parameter in the fruit materials (see the material
+    // setup: Lerp(color, white, FlashAmount) and emissive).
+    UPROPERTY(EditDefaultsOnly, Category = "Flash")
+    FName FlashParameterName = TEXT("FlashAmount");
+
+    // One dynamic instance per material slot, made in ShowFruit().
+    UPROPERTY(Transient)
+    TArray<TObjectPtr<UMaterialInstanceDynamic>> FlashMaterials;
 
     float BobTime = 0.0f;
     bool  bShown  = false;

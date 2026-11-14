@@ -5,6 +5,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/StreamableManager.h"
 #include "Dev/PacDevConfig.h"
+#include "PacFruitFlash.h"
 #include "PacGridTypes.h"
 #include "PacFruitManager.generated.h"
 // clang-format on
@@ -90,6 +91,11 @@ private:
     UPROPERTY(EditAnywhere, Category = "Fruit", meta = (ClampMin = "0"))
     int32 MinSpawnDistanceInTiles = 8;
 
+    // The white flashing before the fruit leaves (starts with 19% of the
+    // lifetime left, faster every 3%).
+    UPROPERTY(EditAnywhere, Category = "Fruit|Flash")
+    FPacFruitFlashSettings Flash;
+
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;
 
@@ -114,5 +120,6 @@ private:
 
     int32 PelletsEaten = 0;
     float LifeTimeLeft = 0.0f;
+    float FlashPhase   = 0.0f;
     bool  bRunning     = false;
 };
