@@ -15,6 +15,7 @@ class USceneComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class APacPlayerPawn;
+class UPacWallBuilderComponent;
 
 /**
  * The Unreal side of the maze: world positions, camera and debug drawing.
@@ -106,6 +107,16 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Components")
     TObjectPtr<USceneComponent> BaseComponent;
+
+    // Builds the wall meshes. Pick its Style (a PacWallStyle asset) in the maze
+    // Blueprint; with no Style the maze has no wall meshes.
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UPacWallBuilderComponent> WallBuilder;
+
+    // The blue wireframe boxes. Turn off once the wall meshes are set up.
+    UPROPERTY(EditDefaultsOnly, Category = "Maze|Debug")
+    bool bDrawDebugWalls = true;
+
 
     // -------------------- camera --------------------
     UPROPERTY(EditAnywhere, Category = "Components")

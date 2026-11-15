@@ -27,6 +27,51 @@ enum class EPacTileType : uint8
     GhostHouse
 };
 
+// The wall mesh pieces. Every wall tile looks at its 8 neighbours and becomes
+// one of these, turned by 0..3 quarter turns (see FPacGrid::TryGetWallPlacement).
+//
+// Each piece is described in its BASE orientation, as seen from above with
+// North = +Y (Y grows with the row index of the layout text) and East = +X. '#'
+// = that neighbour is a wall, '.' = it is not.
+//
+//   Alone          End            Corner         CornerFilled   Straight
+//   . . .          . # .          . # .          . # #          . # .
+//   . X .          . X .          . X #          . X #          . X .
+//   . . .          . . .          . . .          . . .          . # .
+//
+//   TeeOpen        TeeFillNE      TeeFillSE      TeeFilled      CrossOpen
+//   . # .          . # #          . # .          . # #          . # .
+//   . X #          . X #          . X #          . X #          # X #
+//   . # .          . # .          . # #          . # #          . # .
+//
+//   CrossFill1     CrossFill2Adj  CrossFill2Opp  CrossFill3     Solid
+//   . # #          . # #          . # #          . # #          # # #
+//   # X #          # X #          # X #          # X #          # X #
+//   . # .          . # #          # # .          # # #          # # #
+//
+// A diagonal neighbour only counts when both cardinal neighbours next to it are
+// walls too (otherwise it cannot change how the tile looks).
+UENUM(BlueprintType)
+enum class EPacWallPiece : uint8
+{
+    Alone,
+    End,
+    Corner,
+    CornerFilled,
+    Straight,
+    TeeOpen,
+    TeeFillNE,
+    TeeFillSE,
+    TeeFilled,
+    CrossOpen,
+    CrossFill1,
+    CrossFill2Adjacent,
+    CrossFill2Opposite,
+    CrossFill3,
+    Solid
+};
+
+
 USTRUCT(BlueprintType)
 struct PACMANGAME_API FPacGridPosition
 {

@@ -833,103 +833,397 @@ void FPacGridSpec::Define()
              });
 
     // ------------------------------------------------------------------
-    Describe("FleeTarget",
-             [this]()
-             {
-                 It("runs to the far end, away from the threat",
-                    [this]()
+    Describe(
+        "FleeTarget",
+        [this]()
+        {
+            It("runs to the far end, away from the threat",
+               [this]()
+               {
+                   // 7 wide corridor. Threat on the left, fleer in the middle.
+                   FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
+                                                 "#"),
+                                            FIntPoint(7, 3));
+
+                   FPacGridPosition Target;
+                   TestTrue(TEXT("found"),
+                            Grid.FindFleeTarget(FPacGridPosition(3, 1),
+                                                FPacGridPosition(1, 1),
+                                                Target));
+                   TestTrue(TEXT("far right end"),
+                            Target == FPacGridPosition(5, 1));
+               });
+
+            It("does not pick a tile the threat reaches first",
+               [this]()
+               {
+                   // Threat is right next to the fleer on the right, so
+                   // the only safe tiles are on the left.
+                   FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
+                                                 "#"),
+                                            FIntPoint(7, 3));
+
+                   FPacGridPosition Target;
+                   TestTrue(TEXT("found"),
+                            Grid.FindFleeTarget(FPacGridPosition(3, 1),
+                                                FPacGridPosition(4, 1),
+                                                Target));
+                   TestTrue(TEXT("far left end"), Target == FPacGridPosition(1, 1));
+               });
+
+            It("does not pick a tile that is equally far for both",
+               [this]()
+               {
+                   // Fleer (1,1), threat (5,1). A long side corridor
+                   // leaves the middle tile (3,1): its tiles are exactly
+                   // as far from the fleer as from the threat, so the
+                   // threat could be there at the same time. They must
+                   // not win just because they are far away.
+                   FPacGrid Grid = MakeGrid(TEXT("#######\n"
+                                                 "#-----#\n"
+                                                 "###-###\n"
+                                                 "###-###\n"
+                                                 "###-###\n"
+                                                 "###-###\n"
+                                                 "#######"),
+                                            FIntPoint(7, 7));
+
+                   FPacGridPosition Target;
+                   TestTrue(TEXT("found"),
+                            Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                FPacGridPosition(5, 1),
+                                                Target));
+                   TestTrue(TEXT("the safe tile next to the fleer"),
+                            Target == FPacGridPosition(2, 1));
+               });
+            // ------------------------------------------------------------------
+            Describe(
+                "WallPieces",
+                [this]()
+                {
+                    // Placement of the wall at (X,Y) in a layout (row index = Y,
+                    // North = +Y). Outside the grid is open unless said otherwise.
+                    auto const Place =
+                        [this](TCHAR const*        Layout,
+                               FIntPoint           Size,
+                               int32               X,
+                               int32               Y,
+                               FPacWallPlacement & Out,
+                               bool bOutsideIsWall = false) -> bool
                     {
-                        // 7 wide corridor. Threat on the left, fleer in the middle.
-                        FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
-                                                      "#"),
-                                                 FIntPoint(7, 3));
+                        FPacGrid Grid = MakeGrid(Layout, Size);
+                        return Grid.TryGetWallPlacement(FPacGridPosition(X, Y),
+                                                        bOutsideIsWall,
+                                                        Out);
+                    };
 
-                        FPacGridPosition Target;
-                        TestTrue(TEXT("found"),
-                                 Grid.FindFleeTarget(FPacGridPosition(3, 1),
-                                                     FPacGridPosition(1, 1),
-                                                     Target));
-                        TestTrue(TEXT("far right end"),
-                                 Target == FPacGridPosition(5, 1));
-                    });
+                    It("reduces diagonals that have no cardinal neighbours "
+                       "beside them",
+                       [this]()
+                       {
+                           using namespace PacWallBits;
 
-                 It("does not pick a tile the threat reaches first",
-                    [this]()
-                    {
-                        // Threat is right next to the fleer on the right, so
-                        // the only safe tiles are on the left.
-                        FPacGrid Grid = MakeGrid(TEXT("#######\n#-----#\n######"
-                                                      "#"),
-                                                 FIntPoint(7, 3));
+                           TestEqual(TEXT("lone diagonal"),
+                                     static_cast<int32>(FPacGrid::ReduceWallMask(NE)),
+                                     0);
+                           TestEqual(TEXT("diagonal with one side only"),
+                                     static_cast<int32>(
+                                         FPacGrid::ReduceWallMask(N | NE)),
+                                     static_cast<int32>(N));
+                           TestEqual(TEXT("diagonal with both sides"),
+                                     static_cast<int32>(
+                                         FPacGrid::ReduceWallMask(N | NE | E)),
+                                     static_cast<int32>(N | NE | E));
+                           TestEqual(TEXT("everything"),
+                                     static_cast<int32>(
+                                         FPacGrid::ReduceWallMask(0xFF)),
+                                     0xFF);
+                       });
 
-                        FPacGridPosition Target;
-                        TestTrue(TEXT("found"),
-                                 Grid.FindFleeTarget(FPacGridPosition(3, 1),
-                                                     FPacGridPosition(4, 1),
-                                                     Target));
-                        TestTrue(TEXT("far left end"),
-                                 Target == FPacGridPosition(1, 1));
-                    });
+                    It("turns a mask clockwise",
+                       [this]()
+                       {
+                           using namespace PacWallBits;
 
-                 It("does not pick a tile that is equally far for both",
-                    [this]()
-                    {
-                        // Fleer (1,1), threat (5,1). A long side corridor
-                        // leaves the middle tile (3,1): its tiles are exactly
-                        // as far from the fleer as from the threat, so the
-                        // threat could be there at the same time. They must
-                        // not win just because they are far away.
-                        FPacGrid Grid = MakeGrid(TEXT("#######\n"
-                                                      "#-----#\n"
-                                                      "###-###\n"
-                                                      "###-###\n"
-                                                      "###-###\n"
-                                                      "###-###\n"
-                                                      "#######"),
-                                                 FIntPoint(7, 7));
+                           TestEqual(TEXT("N to E"),
+                                     static_cast<int32>(
+                                         FPacGrid::RotateWallMask(N, 1)),
+                                     static_cast<int32>(E));
+                           TestEqual(TEXT("N to W after 3"),
+                                     static_cast<int32>(
+                                         FPacGrid::RotateWallMask(N, 3)),
+                                     static_cast<int32>(W));
+                           TestEqual(TEXT("NE to SE"),
+                                     static_cast<int32>(
+                                         FPacGrid::RotateWallMask(NE, 1)),
+                                     static_cast<int32>(SE));
+                           TestEqual(TEXT("full turn"),
+                                     static_cast<int32>(
+                                         FPacGrid::RotateWallMask(N | NE, 4)),
+                                     static_cast<int32>(N | NE));
+                           TestEqual(TEXT("negative turns"),
+                                     static_cast<int32>(
+                                         FPacGrid::RotateWallMask(N, -1)),
+                                     static_cast<int32>(W));
+                       });
 
-                        FPacGridPosition Target;
-                        TestTrue(TEXT("found"),
-                                 Grid.FindFleeTarget(FPacGridPosition(1, 1),
-                                                     FPacGridPosition(5, 1),
-                                                     Target));
-                        TestTrue(TEXT("the safe tile next to the fleer"),
-                                 Target == FPacGridPosition(2, 1));
-                    });
+                    It("classifies every possible neighbourhood, and it "
+                       "can be rebuilt",
+                       [this]()
+                       {
+                           TSet<EPacWallPiece> UsedPieces;
 
-                 It("returns false when cornered",
-                    [this]()
-                    {
-                        // Fleer in the left dead end, threat right beside it:
-                        // every other tile is closer to the threat.
-                        FPacGrid Grid = MakeGrid(TEXT("#####\n#---#\n#####"),
-                                                 FIntPoint(5, 3));
+                           for (int32 Raw = 0; Raw < 256; ++Raw)
+                           {
+                               uint8 const Reduced = FPacGrid::ReduceWallMask(
+                                   static_cast<uint8>(Raw));
 
-                        FPacGridPosition Target;
-                        TestFalse(TEXT("cornered"),
-                                  Grid.FindFleeTarget(FPacGridPosition(1, 1),
-                                                      FPacGridPosition(2, 1),
-                                                      Target));
-                    });
+                               FPacWallPlacement const Placement = FPacGrid::ClassifyWallMask(
+                                   Reduced);
 
-                 It("treats tiles the threat cannot reach as safe",
-                    [this]()
-                    {
-                        // Fleer and threat in separate rooms: any tile of the
-                        // fleer's room is safe.
-                        FPacGrid Grid = MakeGrid(TEXT("#######\n#--#--#\n######"
-                                                      "#"),
-                                                 FIntPoint(7, 3));
+                               UsedPieces.Add(Placement.Piece);
 
-                        FPacGridPosition Target;
-                        TestTrue(TEXT("found"),
-                                 Grid.FindFleeTarget(FPacGridPosition(1, 1),
-                                                     FPacGridPosition(4, 1),
-                                                     Target));
-                        TestTrue(TEXT("the other tile of its room"),
-                                 Target == FPacGridPosition(2, 1));
-                    });
-             });
+                               // base orientation turned back must be the
+                               // look of this tile
+                               TestEqual(*FString::Printf(TEXT("mask %d "
+                                                               "rebuilt"),
+                                                          Raw),
+                                         static_cast<int32>(
+                                             FPacGrid::RotateWallMask(FPacGrid::GetBaseWallMask(
+                                                                          Placement
+                                                                              .Piece),
+                                                                      Placement.QuarterTurns)),
+                                         static_cast<int32>(Reduced));
+
+                               TestTrue(*FString::Printf(TEXT("mask %d "
+                                                              "turns in "
+                                                              "range"),
+                                                         Raw),
+                                        Placement.QuarterTurns >= 0 &&
+                                            Placement.QuarterTurns < 4);
+                           }
+
+                           TestEqual(TEXT("all 15 pieces are used"),
+                                     UsedPieces.Num(),
+                                     15);
+                       });
+
+                    It("recognises an isolated wall",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+                           TestTrue(TEXT("is a wall"),
+                                    Place(TEXT("---\n-#-\n---"), FIntPoint(3, 3), 1, 1, P));
+                           TestTrue(TEXT("alone"), P.Piece == EPacWallPiece::Alone);
+                       });
+
+                    It("turns an end piece towards its neighbour",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+
+                           // neighbour to the North (Y + 1)
+                           Place(TEXT("---\n-#-\n-#-"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("end"), P.Piece == EPacWallPiece::End);
+                           TestEqual(TEXT("north: 0 turns"), P.QuarterTurns, 0);
+
+                           // neighbour to the East
+                           Place(TEXT("---\n-##\n---"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("end"), P.Piece == EPacWallPiece::End);
+                           TestEqual(TEXT("east: 1 turn"), P.QuarterTurns, 1);
+
+                           // neighbour to the South
+                           Place(TEXT("-#-\n-#-\n---"), FIntPoint(3, 3), 1, 1, P);
+                           TestEqual(TEXT("south: 2 turns"), P.QuarterTurns, 2);
+
+                           // neighbour to the West
+                           Place(TEXT("---\n##-\n---"), FIntPoint(3, 3), 1, 1, P);
+                           TestEqual(TEXT("west: 3 turns"), P.QuarterTurns, 3);
+                       });
+
+                    It("tells a straight piece from a corner",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+
+                           Place(TEXT("-#-\n-#-\n-#-"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("vertical is straight"),
+                                    P.Piece == EPacWallPiece::Straight);
+                           TestEqual(TEXT("vertical: 0 turns"), P.QuarterTurns, 0);
+
+                           Place(TEXT("---\n###\n---"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("horizontal is straight"),
+                                    P.Piece == EPacWallPiece::Straight);
+                           TestEqual(TEXT("horizontal: 1 turn"), P.QuarterTurns, 1);
+
+                           // North + East neighbours, nothing in the NE corner
+                           Place(TEXT("---\n-##\n-#-"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("corner"),
+                                    P.Piece == EPacWallPiece::Corner);
+                           TestEqual(TEXT("N+E: 0 turns"), P.QuarterTurns, 0);
+
+                           // South + West neighbours
+                           Place(TEXT("-#-\n##-\n---"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("corner"),
+                                    P.Piece == EPacWallPiece::Corner);
+                           TestEqual(TEXT("S+W: 2 turns"), P.QuarterTurns, 2);
+                       });
+
+                    It("fills the inner corner when the diagonal is a wall "
+                       "too",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+
+                           Place(TEXT("---\n-##\n-##"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("filled corner"),
+                                    P.Piece == EPacWallPiece::CornerFilled);
+                           TestEqual(TEXT("0 turns"), P.QuarterTurns, 0);
+                       });
+
+                    It("finds T pieces, crosses and solid blocks",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+
+                           // N, E, S neighbours
+                           Place(TEXT("-#-\n-##\n-#-"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("tee"), P.Piece == EPacWallPiece::TeeOpen);
+                           TestEqual(TEXT("0 turns"), P.QuarterTurns, 0);
+
+                           // plus sign
+                           Place(TEXT("-#-\n###\n-#-"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("cross"),
+                                    P.Piece == EPacWallPiece::CrossOpen);
+
+                           // all eight neighbours
+                           Place(TEXT("###\n###\n###"), FIntPoint(3, 3), 1, 1, P);
+                           TestTrue(TEXT("solid"), P.Piece == EPacWallPiece::Solid);
+                       });
+
+                    It("treats the outside of the grid as a wall only when "
+                       "asked",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+
+                           // corner tile: 3 of 8 neighbours are inside the grid
+                           Place(TEXT("###\n###\n###"), FIntPoint(3, 3), 0, 0, P, false);
+                           TestTrue(TEXT("outside open: filled corner"),
+                                    P.Piece == EPacWallPiece::CornerFilled);
+
+                           Place(TEXT("###\n###\n###"), FIntPoint(3, 3), 0, 0, P, true);
+                           TestTrue(TEXT("outside wall: solid"),
+                                    P.Piece == EPacWallPiece::Solid);
+                       });
+
+                    It("has a plainer fallback for the filled pieces",
+                       [this]()
+                       {
+                           using namespace PacWallBits;
+
+                           constexpr uint8 Cardinals = N | E | S | W;
+
+                           for (int32 Index = 0; Index < 15; ++Index)
+                           {
+                               EPacWallPiece Piece = static_cast<EPacWallPiece>(
+                                   Index);
+
+                               // The chain must end, and never gets longer than 2 steps.
+                               int32 Steps = 0;
+
+                               EPacWallPiece Next;
+                               while (FPacGrid::TryGetWallPieceFallback(Piece, Next))
+                               {
+                                   // Same side neighbours, so the same turns
+                                   // fit, and only diagonals were dropped.
+                                   TestEqual(TEXT("same side neighbours"),
+                                             static_cast<int32>(
+                                                 FPacGrid::GetBaseWallMask(Next) &
+                                                 Cardinals),
+                                             static_cast<int32>(
+                                                 FPacGrid::GetBaseWallMask(Piece) &
+                                                 Cardinals));
+                                   TestEqual(TEXT("no diagonal added"),
+                                             static_cast<int32>(
+                                                 FPacGrid::GetBaseWallMask(Next) &
+                                                 ~FPacGrid::GetBaseWallMask(Piece)),
+                                             0);
+                                   Piece = Next;
+                                   ++Steps;
+                                   TestTrue(TEXT("chain ends"), Steps <= 2);
+                                   if (Steps > 2)
+                                   {
+                                       break;
+                                   }
+                               }
+                           }
+
+                           EPacWallPiece Out;
+                           TestFalse(TEXT("Solid has no fallback"),
+                                     FPacGrid::TryGetWallPieceFallback(EPacWallPiece::Solid,
+                                                                       Out));
+                           TestFalse(TEXT("Straight has no fallback"),
+                                     FPacGrid::TryGetWallPieceFallback(EPacWallPiece::Straight,
+                                                                       Out));
+                           TestTrue(TEXT("CrossFill3 -> CrossOpen"),
+                                    FPacGrid::TryGetWallPieceFallback(EPacWallPiece::CrossFill3,
+                                                                      Out) &&
+                                        Out == EPacWallPiece::CrossOpen);
+                       });
+
+                    It("gives no placement for tiles that are not walls",
+                       [this, Place]()
+                       {
+                           FPacWallPlacement P;
+                           TestFalse(TEXT("open tile"),
+                                     Place(TEXT("---\n-.-\n---"),
+                                           FIntPoint(3, 3),
+                                           1,
+                                           1,
+                                           P));
+                           TestFalse(TEXT("outside the grid"),
+                                     Place(TEXT("---\n-#-\n---"),
+                                           FIntPoint(3, 3),
+                                           5,
+                                           5,
+                                           P));
+                       });
+                });
+
+            It("returns false when cornered",
+               [this]()
+               {
+                   // Fleer in the left dead end, threat right beside it:
+                   // every other tile is closer to the threat.
+                   FPacGrid Grid = MakeGrid(TEXT("#####\n#---#\n#####"),
+                                            FIntPoint(5, 3));
+
+                   FPacGridPosition Target;
+                   TestFalse(TEXT("cornered"),
+                             Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                 FPacGridPosition(2, 1),
+                                                 Target));
+               });
+
+            It("treats tiles the threat cannot reach as safe",
+               [this]()
+               {
+                   // Fleer and threat in separate rooms: any tile of the
+                   // fleer's room is safe.
+                   FPacGrid Grid = MakeGrid(TEXT("#######\n#--#--#\n######"
+                                                 "#"),
+                                            FIntPoint(7, 3));
+
+                   FPacGridPosition Target;
+                   TestTrue(TEXT("found"),
+                            Grid.FindFleeTarget(FPacGridPosition(1, 1),
+                                                FPacGridPosition(4, 1),
+                                                Target));
+                   TestTrue(TEXT("the other tile of its room"),
+                            Target == FPacGridPosition(2, 1));
+               });
+        });
 }
 
 #endif  // WITH_DEV_AUTOMATION_TESTS

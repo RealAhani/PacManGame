@@ -338,6 +338,222 @@ bool FPacGrid::FindFirstStep(FPacGridPosition const & Start,
     return false;
 }
 
+// ---------------------------------------------------------------------------
+// wall pieces (auto-tiling)
+// ---------------------------------------------------------------------------
+
+uint8 FPacGrid::GetWallMask(FPacGridPosition const & Position,
+                            bool const               bOutsideIsWall) const
+{
+    struct FNeighbour
+    {
+        int32 DX;
+        int32 DY;
+        uint8 Bit;
+    };
+
+    // North is +Y, East is +X (EPacDirection::Up is Y + 1).
+    static constexpr FNeighbour Neighbours[] =
+        {{0, 1, PacWallBits::N},
+         {1, 1, PacWallBits::NE},
+         {1, 0, PacWallBits::E},
+         {1, -1, PacWallBits::SE},
+         {0, -1, PacWallBits::S},
+         {-1, -1, PacWallBits::SW},
+         {-1, 0, PacWallBits::W},
+         {-1, 1, PacWallBits::NW}};
+
+    uint8 Mask = 0;
+
+    for (FNeighbour const & Neighbour : Neighbours)
+    {
+        FPacGridPosition const Other(Position.X + Neighbour.DX,
+                                     Position.Y + Neighbour.DY);
+
+        bool const bWall = IsValidPosition(Other)
+                               ? Tiles[GetIndex(Other)] == EPacTileType::Wall
+                               : bOutsideIsWall;
+
+        if (bWall)
+        {
+            Mask |= Neighbour.Bit;
+        }
+    }
+
+    return Mask;
+}
+
+uint8 FPacGrid::ReduceWallMask(uint8 const RawMask)
+{
+    using namespace PacWallBits;
+
+    uint8 Reduced = RawMask & (N | E | S | W);
+
+    // A diagonal needs both cardinal neighbours beside it.
+    if ((RawMask & NE) && (RawMask & N) && (RawMask & E))
+    {
+        Reduced |= NE;
+    }
+    if ((RawMask & SE) && (RawMask & E) && (RawMask & S))
+    {
+        Reduced |= SE;
+    }
+    if ((RawMask & SW) && (RawMask & S) && (RawMask & W))
+    {
+        Reduced |= SW;
+    }
+    if ((RawMask & NW) && (RawMask & W) && (RawMask & N))
+    {
+        Reduced |= NW;
+    }
+
+    return Reduced;
+}
+
+uint8 FPacGrid::RotateWallMask(uint8 const Mask, int32 const Turns)
+{
+    // The 8 bits run clockwise, so a quarter turn moves every bit 2 places up.
+    int32 const Steps = ((Turns % 4) + 4) % 4;
+
+    uint32 Rotated = Mask;
+
+    for (int32 Step = 0; Step < Steps; ++Step)
+    {
+        Rotated = ((Rotated << 2) | (Rotated >> 6)) & 0xFFu;
+    }
+
+    return static_cast<uint8>(Rotated);
+}
+
+uint8 FPacGrid::GetBaseWallMask(EPacWallPiece const Piece)
+{
+    using namespace PacWallBits;
+
+    switch (Piece)
+    {
+        case EPacWallPiece::Alone:
+            return 0;
+        case EPacWallPiece::End:
+            return N;
+        case EPacWallPiece::Corner:
+            return N | E;
+        case EPacWallPiece::CornerFilled:
+            return N | NE | E;
+        case EPacWallPiece::Straight:
+            return N | S;
+        case EPacWallPiece::TeeOpen:
+            return N | E | S;
+        case EPacWallPiece::TeeFillNE:
+            return N | NE | E | S;
+        case EPacWallPiece::TeeFillSE:
+            return N | E | SE | S;
+        case EPacWallPiece::TeeFilled:
+            return N | NE | E | SE | S;
+        case EPacWallPiece::CrossOpen:
+            return N | E | S | W;
+        case EPacWallPiece::CrossFill1:
+            return N | NE | E | S | W;
+        case EPacWallPiece::CrossFill2Adjacent:
+            return N | NE | E | SE | S | W;
+        case EPacWallPiece::CrossFill2Opposite:
+            return N | NE | E | S | SW | W;
+        case EPacWallPiece::CrossFill3:
+            return N | NE | E | SE | S | SW | W;
+        case EPacWallPiece::Solid:
+        default:
+            return 0xFF;
+    }
+}
+
+FPacWallPlacement FPacGrid::ClassifyWallMask(uint8 const ReducedMask)
+{
+    // The base orientation of a piece is the smallest mask among its four
+    // rotations, so look for the piece whose base mask is one of them.
+    constexpr EPacWallPiece AllPieces[] =
+        {EPacWallPiece::Alone,
+         EPacWallPiece::End,
+         EPacWallPiece::Corner,
+         EPacWallPiece::CornerFilled,
+         EPacWallPiece::Straight,
+         EPacWallPiece::TeeOpen,
+         EPacWallPiece::TeeFillNE,
+         EPacWallPiece::TeeFillSE,
+         EPacWallPiece::TeeFilled,
+         EPacWallPiece::CrossOpen,
+         EPacWallPiece::CrossFill1,
+         EPacWallPiece::CrossFill2Adjacent,
+         EPacWallPiece::CrossFill2Opposite,
+         EPacWallPiece::CrossFill3,
+         EPacWallPiece::Solid};
+
+    FPacWallPlacement Result;
+
+    for (EPacWallPiece const Piece : AllPieces)
+    {
+        uint8 const Base = GetBaseWallMask(Piece);
+
+        for (int32 Turns = 0; Turns < 4; ++Turns)
+        {
+            if (RotateWallMask(Base, Turns) == ReducedMask)
+            {
+                Result.Piece        = Piece;
+                Result.QuarterTurns = Turns;
+                return Result;
+            }
+        }
+    }
+
+    // Not a reduced mask (a diagonal without its cardinals): reduce it first.
+    // A reduced mask always matches above, so this cannot loop.
+    uint8 const Reduced = ReduceWallMask(ReducedMask);
+
+    return Reduced != ReducedMask ? ClassifyWallMask(Reduced) : Result;
+}
+
+bool FPacGrid::TryGetWallPieceFallback(EPacWallPiece const Piece,
+                                       EPacWallPiece &     OutFallback)
+{
+    switch (Piece)
+    {
+        case EPacWallPiece::CornerFilled:
+            OutFallback = EPacWallPiece::Corner;
+            return true;
+
+        case EPacWallPiece::TeeFillNE:
+        case EPacWallPiece::TeeFillSE:
+        case EPacWallPiece::TeeFilled:
+            OutFallback = EPacWallPiece::TeeOpen;
+            return true;
+
+        case EPacWallPiece::CrossFill1:
+        case EPacWallPiece::CrossFill2Adjacent:
+        case EPacWallPiece::CrossFill2Opposite:
+        case EPacWallPiece::CrossFill3:
+            OutFallback = EPacWallPiece::CrossOpen;
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+bool FPacGrid::TryGetWallPlacement(FPacGridPosition const & Position,
+                                   bool const               bOutsideIsWall,
+                                   FPacWallPlacement &      OutPlacement) const
+{
+    OutPlacement = FPacWallPlacement();
+
+    if (!IsValidPosition(Position) || Tiles[GetIndex(Position)] != EPacTileType::Wall)
+    {
+        return false;
+    }
+
+    OutPlacement = ClassifyWallMask(
+        ReduceWallMask(GetWallMask(Position, bOutsideIsWall)));
+    return true;
+}
+
+
 bool FPacGrid::BuildDistanceField(FPacGridPosition const & Origin,
                                   TArray<int32> &          OutDistances,
                                   bool const bAllowGhostHouse) const

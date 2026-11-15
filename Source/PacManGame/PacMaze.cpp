@@ -11,6 +11,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "PacMazeDataAsset.h"
+#include "PacWallBuilderComponent.h"
 #include "PacPlayerPawn.h"
 // clang-format on
 
@@ -22,6 +23,9 @@ APacMaze::APacMaze()
         TEXT("RootComponent"));
 
     SetRootComponent(BaseComponent);
+    WallBuilder = CreateDefaultSubobject<UPacWallBuilderComponent>(
+        TEXT("WallBuilder"));
+    WallBuilder->SetupAttachment(GetRootComponent());
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(
         TEXT("SpringArm"));
@@ -145,6 +149,13 @@ void APacMaze::InitializeRuntime()
     }
 
     bRuntimeInitialized = true;
+
+    // Meshes for the walls (does nothing without a Style).
+    if (WallBuilder != nullptr)
+    {
+        WallBuilder->BuildWalls(Grid, TileSize);
+    }
+
 
     UE_LOG(LogPacMan,
            Warning,
@@ -347,6 +358,11 @@ void APacMaze::DrawDebugMaze() const
 
             if (Tile == EPacTileType::Wall)
             {
+                if (!bDrawDebugWalls)
+                {
+                    continue;
+                }
+
                 DrawDebugBox(GetWorld(),
                              WorldPosition,
                              BoxExtent,

@@ -5,6 +5,29 @@
 #include "../PacGridTypes.h"
 // clang-format on
 
+// Bits of a wall neighbour mask, clockwise from North. North = +Y, East = +X.
+namespace PacWallBits
+{
+constexpr uint8 N  = 1 << 0;
+constexpr uint8 NE = 1 << 1;
+constexpr uint8 E  = 1 << 2;
+constexpr uint8 SE = 1 << 3;
+constexpr uint8 S  = 1 << 4;
+constexpr uint8 SW = 1 << 5;
+constexpr uint8 W  = 1 << 6;
+constexpr uint8 NW = 1 << 7;
+}  // namespace PacWallBits
+
+// Which wall piece a tile needs and how far to turn it. QuarterTurns is the
+// number of CLOCKWISE quarter turns (seen from above, North up) from the piece's
+// base orientation. In Unreal that is a yaw of -90 * QuarterTurns degrees.
+struct FPacWallPlacement
+{
+    EPacWallPiece Piece        = EPacWallPiece::Alone;
+    int32         QuarterTurns = 0;
+};
+
+
 /**
  * The maze as plain data: tiles plus the questions you can ask about them.
  *
@@ -65,6 +88,44 @@ public:
 
     // how many tile of the specified tiles exist in the map
     int32 CountTiles(EPacTileType TileType) const;
+
+    // -------------------- wall pieces (auto-tiling) --------------------
+
+    // The 8 neighbours of Position as a bit mask (see PacWallBits): a bit is set
+    // when that neighbour is a wall. Tiles outside the grid count as walls when
+    // bOutsideIsWall is true, so the border walls join up with the outside.
+    uint8 GetWallMask(FPacGridPosition const & Position,
+                      bool                     bOutsideIsWall = true) const;
+
+    // Clears the diagonal bits that cannot change the look of the tile: a
+    // diagonal only counts if the two cardinal neighbours next to it are set.
+    // 256 raw masks become 47 reduced ones.
+    static uint8 ReduceWallMask(uint8 RawMask);
+
+    // Turns a mask clockwise by Turns quarter turns (any integer).
+    static uint8 RotateWallMask(uint8 Mask, int32 Turns);
+
+    // The mask of a piece in its base orientation.
+    static uint8 GetBaseWallMask(EPacWallPiece Piece);
+
+    // Piece + rotation for a REDUCED mask. Rotating GetBaseWallMask(Piece) by
+    // QuarterTurns gives back exactly ReducedMask. For symmetric pieces the
+    // smallest valid number of turns is returned.
+    static FPacWallPlacement ClassifyWallMask(uint8 ReducedMask);
+
+    // A plainer piece to use when a piece has no mesh: the "filled" versions
+    // fall back to the open one with the same walls around (CornerFilled ->
+    // Corner, TeeFilled -> TeeOpen, CrossFill3 -> CrossOpen ...). Because the
+    // four side neighbours are the same, the same QuarterTurns still fit.
+    // Returns false for the pieces that have nothing plainer.
+    static bool TryGetWallPieceFallback(EPacWallPiece   Piece,
+                                        EPacWallPiece & OutFallback);
+
+    // False if Position is not a wall.
+    bool TryGetWallPlacement(FPacGridPosition const & Position,
+                             bool                     bOutsideIsWall,
+                             FPacWallPlacement &      OutPlacement) const;
+
 
     // -------------------- changing --------------------
 
