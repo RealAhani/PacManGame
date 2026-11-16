@@ -7,6 +7,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/World.h"
 // clang-format on
 
 namespace
@@ -145,8 +146,16 @@ void UPacWallBuilderComponent::HandleMeshesLoaded()
             continue;
         }
 
-        UInstancedStaticMeshComponent* const
-            Instances = NewObject<UInstancedStaticMeshComponent>(Owner);
+        // In the editor (no Play) the walls are only a preview: transient, so
+        // they are never saved into the level.
+        UWorld const* const World = GetWorld();
+
+        EObjectFlags const Flags = (World != nullptr && !World->IsGameWorld())
+                                       ? RF_Transient
+                                       : RF_NoFlags;
+
+        UInstancedStaticMeshComponent* const Instances = NewObject<
+            UInstancedStaticMeshComponent>(Owner, NAME_None, Flags);
 
         Instances->SetStaticMesh(Mesh);
         Instances->SetCollisionEnabled(

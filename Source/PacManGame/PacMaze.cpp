@@ -19,7 +19,14 @@
 APacMaze::APacMaze()
 {
     PrimaryActorTick.bCanEverTick = true;
-    BaseComponent                 = CreateDefaultSubobject<USceneComponent>(
+
+    // The camera follows Pac-Man, so it must move AFTER Pac-Man and the ghosts
+    // have moved this frame. In the default group the order is undefined, and
+    // when the camera runs first it follows last frame's position: the picture
+    // shakes (looks like tearing) whenever both move.
+    PrimaryActorTick.TickGroup = TG_PostUpdateWork;
+
+    BaseComponent = CreateDefaultSubobject<USceneComponent>(
         TEXT("RootComponent"));
 
     SetRootComponent(BaseComponent);
@@ -94,8 +101,6 @@ void APacMaze::Tick(float const DeltaTime)
     // Same axes you used for the working version, plus the perpendicular one.
     FVector const AxisA = FVector::RightVector;    // existing axis (world Y)
     FVector const AxisB = FVector::ForwardVector;  // new axis (world X)
-    DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisA * 200, FColor::Green);
-    DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisB * 200, FColor::Red);
 
     float const OffsetA = FVector::DotProduct(ToPlayer, AxisA);
     float const OffsetB = FVector::DotProduct(ToPlayer, AxisB);
@@ -104,11 +109,16 @@ void APacMaze::Tick(float const DeltaTime)
                                                              FVector2D(-950, 1000),
                                                              OffsetA);
     float const DesiredB = FMath::GetMappedRangeValueClamped(FVector2D(-1000, 1000),
-                                                             FVector2D(-300, 300),
+                                                             FVector2D(-300, 450),
                                                              OffsetB);
 
     FVector const DesiredLoc = Home + AxisA * DesiredA + AxisB * DesiredB;
-    DrawDebugLine(GetWorld(), Home, DesiredLoc, FColor::White);
+    if (bDrawDebugWalls)
+    {
+        DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisA * 200, FColor::Green);
+        DrawDebugLine(GetWorld(), FVector(0, 0, 0), AxisB * 200, FColor::Red);
+        DrawDebugLine(GetWorld(), Home, DesiredLoc, FColor::White);
+    }
 
     SpringArmComponent->SetWorldLocation(
         FMath::VInterpTo(SpringArmComponent->GetComponentLocation(),
@@ -164,6 +174,27 @@ void APacMaze::InitializeRuntime()
            GridSize.Y,
            *GetNameSafe(MazeData));
 }
+
+#if WITH_EDITOR
+void APacMaze::PreviewMaze()
+{
+    bRuntimeInitialized = false;
+    InitializeRuntime();
+}
+
+void APacMaze::ClearMazePreview()
+{
+    if (WallBuilder != nullptr)
+    {
+        WallBuilder->ClearWalls();
+    }
+
+    Grid                = FPacGrid();
+    GridSize            = FIntPoint::ZeroValue;
+    bRuntimeInitialized = false;
+}
+#endif
+
 
 bool APacMaze::ValidateStartPositions() const
 {
@@ -341,7 +372,7 @@ void APacMaze::DrawDebugMaze() const
 {
     // Nothing to draw if the layout failed to load (the error is already
     // logged); GetPlayerStart() below would also assert.
-    if (!bRuntimeInitialized)
+    if (!bRuntimeInitialized || !bDrawDebugWalls)
     {
         return;
     }
@@ -358,10 +389,6 @@ void APacMaze::DrawDebugMaze() const
 
             if (Tile == EPacTileType::Wall)
             {
-                if (!bDrawDebugWalls)
-                {
-                    continue;
-                }
 
                 DrawDebugBox(GetWorld(),
                              WorldPosition,

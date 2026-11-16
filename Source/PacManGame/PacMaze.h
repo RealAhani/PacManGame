@@ -69,6 +69,17 @@ public:
         return Grid;
     }
 
+#if WITH_EDITOR
+    // Editor buttons (maze Details panel): show the walls without pressing
+    // Play. The preview parts are transient, so they are not saved in the level.
+    UFUNCTION(CallInEditor, Category = "Maze|Preview")
+    void PreviewMaze();
+
+    UFUNCTION(CallInEditor, Category = "Maze|Preview")
+    void ClearMazePreview();
+#endif
+
+
     // True once the layout parsed and the start positions validated.
     bool IsRuntimeInitialized() const
     {

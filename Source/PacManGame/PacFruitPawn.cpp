@@ -7,6 +7,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 // clang-format on
 
@@ -49,6 +52,36 @@ void APacFruitPawn::Tick(float const DeltaSeconds)
 
     FruitMesh->SetRelativeLocation(
         FVector(0.0f, 0.0f, BaseHeight + BobHeight * FMath::Sin(BobTime * BobSpeed)));
+
+    if (bFaceCamera)
+    {
+        FaceCamera();
+    }
+}
+
+void APacFruitPawn::FaceCamera()
+{
+    APlayerCameraManager const* const
+        Camera = UGameplayStatics::GetPlayerCameraManager(this, 0);
+
+    if (Camera == nullptr)
+    {
+        return;
+    }
+
+    FVector const From = FruitMesh->GetComponentLocation();
+    FVector       To   = Camera->GetCameraLocation();
+
+    if (bFaceCameraYawOnly)
+    {
+        To.Z = From.Z;
+    }
+
+    FRotator Look = UKismetMathLibrary::FindLookAtRotation(From, To);
+    Look.Roll     = 0.0f;
+
+    // Compose, so the offset is applied in the mesh's own space.
+    FruitMesh->SetWorldRotation(Look.Quaternion() * FacingOffset.Quaternion());
 }
 
 UPacGhostMovementComponent* APacFruitPawn::GetFruitMovementComponent() const

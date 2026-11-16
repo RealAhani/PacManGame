@@ -36,6 +36,17 @@ public:
     void Initialize(APacMaze* InMaze);
     void BindToPlayerMovement(UPacGridMovementComponent* MovementComponent);
 
+#if WITH_EDITOR
+    // Editor buttons: show the pellets without pressing Play. Press Clear
+    // Pellet Preview before saving the level, or the instances are saved in it.
+    UFUNCTION(CallInEditor, Category = "Pellets|Preview")
+    void PreviewPellets();
+
+    UFUNCTION(CallInEditor, Category = "Pellets|Preview")
+    void ClearPelletPreview();
+#endif
+
+
     // -------------------- properties --------------------
     FOnPelletConsumed      OnPelletConsumed;
     FOnAllPelletsConsumed  OnAllPelletsConsumed;
@@ -72,7 +83,7 @@ private:
 
     UPROPERTY(EditAnywhere,
               Category = "Pellets",
-              meta     = (ClampMin = "0.1", ClampMax = "1.0"))
+              meta     = (ClampMin = "0.1", ClampMax = "10.0"))
     float PowerPelletSize = 1.0f;
 
     TMap<FPacGridPosition, FPacPelletData> Pellets;

@@ -7,6 +7,7 @@
 #include "PacGridMovementComponent.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "EngineUtils.h"
 // clang-format on
 
 // Sets default values
@@ -112,6 +113,41 @@ void APacPelletManager::SpawnPellets()
 
     UE_LOG(LogPacMan, Log, TEXT("PAC: Created %d pellet instances."), Pellets.Num());
 }
+
+#if WITH_EDITOR
+void APacPelletManager::PreviewPellets()
+{
+    APacMaze* FoundMaze = nullptr;
+
+    for (TActorIterator<APacMaze> It(GetWorld()); It; ++It)
+    {
+        FoundMaze = *It;
+        break;
+    }
+
+    if (FoundMaze == nullptr)
+    {
+        UE_LOG(LogPacMan, Warning, TEXT("PAC: No maze in the level to preview."));
+        return;
+    }
+
+    if (!FoundMaze->IsRuntimeInitialized())
+    {
+        FoundMaze->PreviewMaze();
+    }
+
+    Maze = FoundMaze;
+    SpawnPellets();
+}
+
+void APacPelletManager::ClearPelletPreview()
+{
+    Pellets.Empty();
+    NormalPelletInstances->ClearInstances();
+    PowerPelletInstances->ClearInstances();
+}
+#endif
+
 
 void APacPelletManager::HandlePlayerGridPositionChanged(FPacGridPosition const & Position)
 {

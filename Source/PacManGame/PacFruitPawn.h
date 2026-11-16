@@ -53,6 +53,8 @@ public:
 
 private:
 
+    void FaceCamera();
+
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<USphereComponent> RootSphere;
 
@@ -84,6 +86,21 @@ private:
     // One dynamic instance per material slot, made in ShowFruit().
     UPROPERTY(Transient)
     TArray<TObjectPtr<UMaterialInstanceDynamic>> FlashMaterials;
+
+    // The mesh turns to look at the camera while the fruit is shown.
+    UPROPERTY(EditDefaultsOnly, Category = "Facing")
+    bool bFaceCamera = true;
+
+    // On: only turns left/right (stays upright). Off: also tilts up/down to
+    // look straight at the camera.
+    UPROPERTY(EditDefaultsOnly, Category = "Facing")
+    bool bFaceCameraYawOnly = false;
+
+    // Added on top of "looking at the camera". Use it when your mesh's front
+    // is not its +X axis: for example Yaw 90 or -90, or 180 for a mesh that
+    // faces -X.
+    UPROPERTY(EditDefaultsOnly, Category = "Facing")
+    FRotator FacingOffset = FRotator::ZeroRotator;
 
     float BobTime = 0.0f;
     bool  bShown  = false;
