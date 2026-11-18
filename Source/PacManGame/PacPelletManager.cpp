@@ -90,7 +90,9 @@ void APacPelletManager::SpawnPellets()
                                                    : FVector(PelletSize);
 
             FTransform InstanceTransform;
-            InstanceTransform.SetLocation(Maze->GridToWorld(Position));
+            FVector    pelletLocation(Maze->GridToWorld(Position));
+            pelletLocation.Z = 10.f;
+            InstanceTransform.SetLocation(pelletLocation);
             InstanceTransform.SetRotation(FQuat::Identity);
             InstanceTransform.SetScale3D(InstanceScale);
 
