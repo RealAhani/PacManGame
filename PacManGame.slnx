@@ -1,0 +1,70 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="DebugGame" />
+    <BuildType Name="DebugGame Editor" />
+    <BuildType Name="Development" />
+    <BuildType Name="Development Editor" />
+    <BuildType Name="Shipping" />
+    <Platform Name="Android" />
+    <Platform Name="Android-arm64" />
+    <Platform Name="Android-x64" />
+    <Platform Name="Win64" />
+    <Platform Name="Win64-arm64" />
+    <Platform Name="Win64-arm64ec" />
+  </Configurations>
+  <Folder Name="/Engine/">
+    <Project Path="Intermediate/ProjectFiles/UE5.vcxproj" Id="9a26f8db-43bb-3acd-a3ab-55ab02002564">
+      <BuildType Project="BuiltWithUnrealBuildTool" />
+      <Platform Project="Win64" />
+      <Build Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Games/">
+    <Project Path="Intermediate/ProjectFiles/PacManGame.vcxproj" Id="3a016bee-42f8-3fa5-a596-8273f2fc35b5">
+      <BuildType Solution="DebugGame Editor|Android" Project="Invalid" />
+      <BuildType Solution="DebugGame Editor|Android-arm64" Project="Invalid" />
+      <BuildType Solution="DebugGame Editor|Android-x64" Project="Invalid" />
+      <BuildType Solution="DebugGame Editor|Win64" Project="DebugGame_Editor" />
+      <BuildType Solution="DebugGame Editor|Win64-arm64" Project="DebugGame_Editor" />
+      <BuildType Solution="DebugGame Editor|Win64-arm64ec" Project="DebugGame_Editor" />
+      <BuildType Solution="Development Editor|Android" Project="Invalid" />
+      <BuildType Solution="Development Editor|Android-arm64" Project="Invalid" />
+      <BuildType Solution="Development Editor|Android-x64" Project="Invalid" />
+      <BuildType Solution="Development Editor|Win64" Project="Development_Editor" />
+      <BuildType Solution="Development Editor|Win64-arm64" Project="Development_Editor" />
+      <BuildType Solution="Development Editor|Win64-arm64ec" Project="Development_Editor" />
+      <Platform Solution="*|Win64" Project="x64" />
+      <Platform Solution="*|Win64-arm64" Project="arm64" />
+      <Platform Solution="*|Win64-arm64ec" Project="arm64ec" />
+      <Platform Solution="DebugGame Editor|Android" Project="x64" />
+      <Platform Solution="DebugGame Editor|Android-arm64" Project="x64" />
+      <Platform Solution="DebugGame Editor|Android-x64" Project="x64" />
+      <Platform Solution="DebugGame|Android" Project="Android-arm64-v8a" />
+      <Platform Solution="DebugGame|Android-arm64" Project="Android-arm64-v8a" />
+      <Platform Solution="DebugGame|Android-x64" Project="Android-x86_64" />
+      <Platform Solution="Development Editor|Android" Project="x64" />
+      <Platform Solution="Development Editor|Android-arm64" Project="x64" />
+      <Platform Solution="Development Editor|Android-x64" Project="x64" />
+      <Platform Solution="Development|Android" Project="Android-arm64-v8a" />
+      <Platform Solution="Development|Android-arm64" Project="Android-arm64-v8a" />
+      <Platform Solution="Development|Android-x64" Project="Android-x86_64" />
+      <Platform Solution="Shipping|Android" Project="Android-arm64-v8a" />
+      <Platform Solution="Shipping|Android-arm64" Project="Android-arm64-v8a" />
+      <Platform Solution="Shipping|Android-x64" Project="Android-x86_64" />
+      <Build Solution="DebugGame Editor|Android" Project="false" />
+      <Build Solution="DebugGame Editor|Android-arm64" Project="false" />
+      <Build Solution="DebugGame Editor|Android-x64" Project="false" />
+      <Build Solution="Development Editor|Android" Project="false" />
+      <Build Solution="Development Editor|Android-arm64" Project="false" />
+      <Build Solution="Development Editor|Android-x64" Project="false" />
+    </Project>
+  </Folder>
+  <Folder Name="/Visualizers/">
+    <File Path="../../../../../../_dev/UE584/UE_5.8/Engine/Extras/VisualStudioDebugging/Unreal.natjmc" />
+    <File Path="../../../../../../_dev/UE584/UE_5.8/Engine/Extras/VisualStudioDebugging/Unreal.natstepfilter" />
+    <File Path="../../../../../../_dev/UE584/UE_5.8/Engine/Extras/VisualStudioDebugging/Unreal.natvis" />
+  </Folder>
+  <Properties Name="ddbf523f-7eb6-4887-bd51-85a714ff87eb">
+    <Property Name="AvailablePlatforms" Value="Win64;Android" />
+  </Properties>
+</Solution>

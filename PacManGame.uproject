@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.5",
+	"EngineAssociation": "5.8",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -27,13 +27,13 @@
 			"Name": "GameplayStateTree",
 			"Enabled": true
 		},
-        {
-            "Name": "StateTree",
-            "Enabled": true
-        },
-        { 
-            "Name": "GameplayStateTree", 
-            "Enabled": true 
-        }
+		{
+			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
+		}
 	]
 }
