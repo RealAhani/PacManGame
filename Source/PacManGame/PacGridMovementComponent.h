@@ -27,6 +27,7 @@ public:
 
     FPacGridPosition GetCurrentGridPosition() const;
     EPacDirection    GetCurrentDirection() const;
+    bool             GetMovementBlocked() const;
 
     void InitializeMaze(APacMaze* InMaze);
     // Freezes / unfreezes movement (death pause, level complete, game over).
@@ -68,7 +69,10 @@ private:
     UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
     FPacGridPosition CurrentGridPosition;
 
-    UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
+    UPROPERTY(VisibleAnywhere,
+              BlueprintReadOnly,
+              Category = "Grid Movement",
+              meta     = (AllowPrivateAccess = "true"))
     EPacDirection CurrentDirection = EPacDirection::None;
 
     UPROPERTY(VisibleInstanceOnly, Category = "Grid Movement")
@@ -80,6 +84,11 @@ private:
     UPROPERTY(EditDefaultsOnly, Category = "Grid Movement", meta = (ClampMin = "0.0"))
     float MovementSpeed = 300.0f;
 
+    UPROPERTY(VisibleAnywhere,
+              BlueprintReadOnly,
+              Category = "Grid Movement",
+              meta     = (AllowPrivateAccess = "true"))
     bool bMovementBlocked = false;
+
     bool bMovementEnabled = true;
 };

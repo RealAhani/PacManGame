@@ -29,6 +29,9 @@ public:
     void                       SetMovementEnabled(bool bEnabled);
     UPacGridMovementComponent* GetGridMovementComponent() const;
 
+    UFUNCTION(BlueprintCallable, Category = "PacAnimation")
+    bool IsPlayerDead() const;
+
 #if PAC_DEV
     void SetGodMode(bool bEnabled)
     {
@@ -45,7 +48,10 @@ private:
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<USphereComponent> CollisionComponent;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
+    UPROPERTY(VisibleAnywhere,
+              BlueprintReadOnly,
+              meta     = (AllowPrivateAccess = "true"),
+              Category = "Components")
     TObjectPtr<UPacGridMovementComponent> GridMovementComponent;
 
 #if PAC_DEV

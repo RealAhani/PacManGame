@@ -3,6 +3,7 @@
 // clang-format off
 #include "PacPlayerPawn.h"
 #include "PacGridMovementComponent.h"
+#include "PacGameMode.h"
 #include "Components/SphereComponent.h"
 
 #include "PacMaze.h"
@@ -56,4 +57,18 @@ void APacPlayerPawn::SetMovementEnabled(bool const bEnabled)
     check(GridMovementComponent);
 
     GridMovementComponent->SetMovementEnabled(bEnabled);
+}
+
+bool APacPlayerPawn::IsPlayerDead() const
+{
+    APacGameMode* gameMode = GetWorld()->GetAuthGameMode<APacGameMode>();
+    if (gameMode)
+    {
+        switch (gameMode->GetGameState())
+        {
+            case EPacGameState::Dying:
+                return true;
+        }
+    }
+    return false;
 }

@@ -75,6 +75,12 @@ private:
     UPROPERTY()
     TObjectPtr<APacMaze> Maze;
 
+    UPROPERTY(EditAnywhere,
+              BlueprintReadOnly,
+              Category = "Pellets",
+              meta     = (AllowPrivateAccess = "true"))
+    FVector PelletMeshSpawnOffset;
+
 
     UPROPERTY(EditAnywhere,
               Category = "Pellets",

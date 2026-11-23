@@ -94,6 +94,11 @@ public:
         return HouseState == EPacGhostHouseState::InHouse;
     }
 
+    void SetInHouse()
+    {
+        HouseState = EPacGhostHouseState::InHouse;
+    }
+
     EPacGhostHouseState GetHouseState() const
     {
         return HouseState;

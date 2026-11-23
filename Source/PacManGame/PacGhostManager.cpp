@@ -372,18 +372,33 @@ void APacGhostManager::EndFrightened()
     FrightenedTimeLeft = 0.0f;
     GhostsEatenInChain = 0;
 
+    int32 Index = 0;
     for (APacGhostPawn* Ghost : Ghosts)
     {
         UPacGhostDecisionComponent* Decision = IsValid(Ghost)
                                                    ? Ghost->GetGhostDecisionComponent()
                                                    : nullptr;
+        if (Decision != nullptr &&
+            Decision->GetBehaviorMode() == EPacGhostBehaviorMode::Eaten)
+        {
+            // Back in the house: it comes straight out again. Do this before
+            // the mode changes, so the ghost already has a way out.
+            if (Maze->IsGhostHouseTile(GhostStartPositions[Index]))
+            {
+                // Back to whatever round the schedule / StateTree is in now.
+                Decision->StartLeavingHouse();
+                Decision->ReleaseOverride();
+            }
+        }
 
         if (Decision != nullptr &&
             Decision->GetBehaviorMode() == EPacGhostBehaviorMode::Frightened)
         {
+
             // Back to whatever round the schedule / StateTree is in now.
             Decision->ReleaseOverride();
         }
+        Index++;
     }
     SetStateTreesPaused(false);
 }
@@ -408,17 +423,12 @@ void APacGhostManager::ReviveArrivedGhosts()
             Ghost->GetGhostMovementComponent()->GetCurrentGridPosition() ==
                 GhostStartPositions[Index])
         {
-            // Back in the house: it comes straight out again. Do this before
-            // the mode changes, so the ghost already has a way out.
-            if (Maze->IsGhostHouseTile(GhostStartPositions[Index]))
-            {
-                Decision->StartLeavingHouse();
-            }
 
             // Still frightened globally? Come back frightened, else normal.
             if (FrightenedTimeLeft > 0.0f)
             {
-                Decision->SetBehaviorMode(EPacGhostBehaviorMode::Frightened);
+                Decision->SetBehaviorMode(EPacGhostBehaviorMode::Eaten);
+                Decision->SetInHouse();
             }
             else
             {

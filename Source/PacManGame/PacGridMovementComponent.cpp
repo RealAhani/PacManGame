@@ -80,6 +80,12 @@ FPacGridPosition UPacGridMovementComponent::GetCurrentGridPosition() const
     return CurrentGridPosition;
 }
 
+bool UPacGridMovementComponent::GetMovementBlocked() const
+{
+    return bMovementBlocked;
+}
+
+
 EPacDirection UPacGridMovementComponent::GetCurrentDirection() const
 {
     return CurrentDirection;
@@ -242,8 +248,10 @@ void UPacGridMovementComponent::InitializeMaze(APacMaze* InMaze)
     check(OwnerPawn);
 
     CurrentGridPosition = Maze->GetPlayerStart();
-    TargetGridPosition  = CurrentGridPosition;
-    bCrossingTunnel     = false;
+    // Set the Player Spawn Point to an Empty tile for visual but can create bug if player neighbors tile were walls
+    Maze->SetTile(CurrentGridPosition, EPacTileType::Empty);
+    TargetGridPosition = CurrentGridPosition;
+    bCrossingTunnel    = false;
 
     InputQueue.Reset();
     CurrentDirection = EPacDirection::None;
